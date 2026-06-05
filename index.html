@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>未来鹅 - 大学生职业成长AI陪伴体</title>
+<style>
+  :root {
+    --primary: #f97316;
+    --primary-dark: #ea580c;
+    --secondary: #fb923c;
+    --accent: #fbbf24;
+    --bg: #fffbeb;
+    --card: #ffffff;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --border: #fed7aa;
+    --shadow: 0 4px 24px rgba(249,115,22,0.08);
+    --freshman: #10b981;
+    --sophomore: #3b82f6;
+    --junior: #8b5cf6;
+    --senior: #f97316;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 40%, #fbbf24 100%);
+    color: white; padding: 20px 24px; text-align: center;
+    position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(249,115,22,0.2);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .header .brand { display: flex; align-items: center; gap: 10px; }
+  .header .logo { font-size: 36px; }
+  .header h1 { font-size: 22px; font-weight: 700; }
+  .header .grade-badge {
+    padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    background: rgba(255,255,255,0.25); backdrop-filter: blur(4px);
+  }
+
+  /* Main Layout */
+  .main-layout { max-width: 1000px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  /* Onboarding Modal */
+  .onboarding {
+    text-align: center; padding: 48px 24px;
+  }
+  .onboarding .mascot { font-size: 80px; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  .onboarding h2 { font-size: 28px; margin: 16px 0 8px; font-weight: 700; }
+  .onboarding .subtitle { color: var(--text-light); margin-bottom: 32px; font-size: 16px; }
+
+  .grade-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; max-width: 800px; margin: 0 auto; }
+  @media (max-width: 768px) { .grade-cards { grid-template-columns: repeat(2,1fr); } }
+  .grade-card {
+    padding: 24px 16px; border-radius: 16px; cursor: pointer; transition: all 0.3s;
+    border: 2px solid var(--border); background: white; text-align: center;
+  }
+  .grade-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+  .grade-card .grade-icon { font-size: 40px; margin-bottom: 8px; }
+  .grade-card .grade-name { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+  .grade-card .grade-desc { font-size: 12px; color: var(--text-light); }
+  .grade-card.freshman { border-color: var(--freshman); }
+  .grade-card.sophomore { border-color: var(--sophomore); }
+  .grade-card.junior { border-color: var(--junior); }
+  .grade-card.senior { border-color: var(--senior); }
+
+  /* Dashboard */
+  .dashboard { display: none; }
+  .dashboard.show { display: block; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: white; border-radius: 14px; padding: 4px; box-shadow: var(--shadow); }
+  .tab {
+    flex: 1; padding: 12px 16px; border: none; background: transparent; border-radius: 10px;
+    cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-light); transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .tab.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(249,115,22,0.3); }
+
+  /* Cards */
+  .card {
+    background: var(--card); border-radius: 16px; padding: 24px;
+    box-shadow: var(--shadow); margin-bottom: 16px;
+  }
+  .card h3 { font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+  /* Chat */
+  .chat-container { display: flex; flex-direction: column; height: 480px; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 8px 4px; display: flex; flex-direction: column; gap: 12px; }
+  .chat-msg {
+    max-width: 85%; padding: 12px 16px; border-radius: 14px; font-size: 14px; line-height: 1.6;
+    animation: msgIn 0.3s ease;
+  }
+  @keyframes msgIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .chat-msg.ai { background: #fff7ed; align-self: flex-start; border-bottom-left-radius: 4px; }
+  .chat-msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .chat-msg .msg-time { font-size: 10px; opacity: 0.5; margin-top: 4px; }
+  .chat-quick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .chat-quick-btn {
+    padding: 8px 14px; border-radius: 20px; font-size: 12px; cursor: pointer;
+    border: 1px solid var(--border); background: white; transition: all 0.2s;
+  }
+  .chat-quick-btn:hover { background: #fff7ed; border-color: var(--primary); }
+  .chat-input-row { display: flex; gap: 8px; margin-top: 12px; }
+  .chat-input-row input {
+    flex: 1; padding: 12px 16px; border: 2px solid var(--border); border-radius: 24px;
+    font-size: 14px; outline: none; font-family: inherit;
+  }
+  .chat-input-row input:focus { border-color: var(--primary); }
+  .chat-input-row button {
+    width: 44px; height: 44px; border-radius: 50%; border: none;
+    background: var(--primary); color: white; font-size: 18px; cursor: pointer;
+    transition: all 0.2s; flex-shrink: 0;
+  }
+  .chat-input-row button:hover { background: var(--primary-dark); }
+
+  /* Roadmap Timeline */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 12px; top: 8px; bottom: 8px;
+    width: 2px; background: linear-gradient(to bottom, var(--freshman), var(--sophomore), var(--junior), var(--senior));
+    border-radius: 1px;
+  }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-dot {
+    position: absolute; left: -22px; top: 4px; width: 14px; height: 14px;
+    border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px var(--primary);
+  }
+  .timeline-dot.done { background: var(--primary); }
+  .timeline-dot.current { background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 2px var(--accent); } 50% { box-shadow: 0 0 0 8px rgba(251,191,36,0.2); } }
+  .timeline-dot.upcoming { background: #e2e8f0; box-shadow: 0 0 0 2px #e2e8f0; }
+  .timeline-content h4 { font-size: 15px; margin-bottom: 4px; }
+  .timeline-content p { font-size: 13px; color: var(--text-light); }
+
+  /* Knowledge cards */
+  .knowledge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
+  .knowledge-card {
+    padding: 20px; border-radius: 14px; border: 1px solid var(--border); cursor: pointer;
+    transition: all 0.3s; background: white;
+  }
+  .knowledge-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .knowledge-card .kc-icon { font-size: 32px; margin-bottom: 8px; }
+  .knowledge-card .kc-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .knowledge-card .kc-desc { font-size: 12px; color: var(--text-light); }
+
+  /* Daily card */
+  .daily-card {
+    background: linear-gradient(135deg, #fff7ed, #fffbeb);
+    border: 2px solid var(--accent); border-radius: 16px; padding: 24px;
+    text-align: center; margin-bottom: 16px;
+  }
+  .daily-card .daily-icon { font-size: 48px; margin-bottom: 8px; }
+  .daily-card .daily-quote { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .daily-card .daily-tip { font-size: 13px; color: var(--text-light); }
+
+  /* Goal tracker */
+  .goal-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .goal-item:last-child { border-bottom: none; }
+  .goal-check {
+    width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--border);
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .goal-check.done { background: var(--freshman); border-color: var(--freshman); color: white; }
+  .goal-info { flex: 1; }
+  .goal-info .goal-title { font-size: 14px; font-weight: 500; }
+  .goal-info .goal-detail { font-size: 12px; color: var(--text-light); }
+  .goal-badge {
+    padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;
+    background: #fef3c7; color: #92400e;
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: all 0.3s; border: none; display: inline-flex;
+    align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); }
+
+  .hidden-section { display: none; }
+  .hidden-section.show { display: block; }
+
+  /* Stock ticker */
+  .progress-bar {
+    height: 8px; border-radius: 4px; background: #e2e8f0; overflow: hidden; margin-top: 8px;
+  }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .progress-fill.orange { background: linear-gradient(90deg, #f97316, #fbbf24); }
+
+  .toast {
+    position: fixed; top: 24px; right: 24px; padding: 14px 24px;
+    border-radius: 10px; color: white; font-weight: 500; z-index: 1000;
+    animation: slideIn 0.3s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  .toast.success { background: var(--freshman); }
+  @keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">
+    <span class="logo">🐧</span>
+    <h1>未来鹅 · 职业成长陪伴</h1>
+  </div>
+  <span class="grade-badge" id="gradeBadge" style="display:none;">🎓 <span id="gradeLabel"></span></span>
+</div>
+
+<div class="main-layout">
+
+  <!-- Onboarding -->
+  <div class="onboarding" id="onboarding">
+    <div class="mascot">🐣</div>
+    <h2>你好！我是「未来鹅」</h2>
+    <p class="subtitle">你的 AI 职业成长陪伴伙伴，陪你从校园走向职场 ✨</p>
+    <p style="margin-bottom:24px;color:var(--text-light);">先告诉我你现在处于哪个阶段吧～</p>
+    <div class="grade-cards">
+      <div class="grade-card freshman" onclick="startJourney('freshman')">
+        <div class="grade-icon">🌱</div>
+        <div class="grade-name">大一 · 探索期</div>
+        <div class="grade-desc">初入校园，对互联网充满好奇</div>
+      </div>
+      <div class="grade-card sophomore" onclick="startJourney('sophomore')">
+        <div class="grade-icon">🌿</div>
+        <div class="grade-name">大二 · 成长期</div>
+        <div class="grade-desc">思考专业方向，开始积累技能</div>
+      </div>
+      <div class="grade-card junior" onclick="startJourney('junior')">
+        <div class="grade-icon">🌳</div>
+        <div class="grade-name">大三 · 实习期</div>
+        <div class="grade-desc">寻找实习机会，了解行业岗位</div>
+      </div>
+      <div class="grade-card senior" onclick="startJourney('senior')">
+        <div class="grade-icon">🍊</div>
+        <div class="grade-name">大四/研 · 求职期</div>
+        <div class="grade-desc">正式进入求职窗口，冲刺offer</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard (hidden initially) -->
+  <div class="dashboard" id="dashboard">
+
+    <!-- Daily Inspiration -->
+    <div class="daily-card" id="dailyCard"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('chat')">💬 AI 陪伴对话</button>
+      <button class="tab" onclick="switchTab('roadmap')">🗺️ 成长路线图</button>
+      <button class="tab" onclick="switchTab('knowledge')">📚 行业知识库</button>
+      <button class="tab" onclick="switchTab('goals')">🎯 我的目标</button>
+    </div>
+
+    <!-- Tab: Chat -->
+    <div class="hidden-section show" id="tab-chat">
+      <div class="card">
+        <h3>💬 与未来鹅对话</h3>
+        <div class="chat-container">
+          <div class="chat-messages" id="chatMessages"></div>
+          <div class="chat-quick" id="chatQuick"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chatInput" placeholder="输入你的问题，如：我该怎么准备暑期实习？" onkeydown="if(event.key==='Enter')sendMessage()">
+            <button onclick="sendMessage()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Roadmap -->
+    <div class="hidden-section" id="tab-roadmap">
+      <div class="card">
+        <h3>🗺️ 你的专属成长路线图</h3>
+        <p style="color:var(--text-light);font-size:14px;margin-bottom:16px;">基于你当前阶段，未来鹅为你规划了以下成长路径</p>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Knowledge -->
+    <div class="hidden-section" id="tab-knowledge">
+      <div class="card">
+        <h3>📚 互联网行业知识库</h3>
+        <p style="color:var(--text-light);font-size:14px;margin-bottom:16px;">了解腾讯业务、行业趋势、岗位认知，建立系统认知框架</p>
+        <div class="knowledge-grid" id="knowledgeGrid"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Goals -->
+    <div class="hidden-section" id="tab-goals">
+      <div class="card">
+        <h3>🎯 成长目标追踪</h3>
+        <p style="color:var(--text-light);font-size:14px;margin-bottom:16px;">设定阶段性目标，每完成一项就点亮一颗星 ⭐</p>
+        <div id="goalList"></div>
+        <div style="margin-top:16px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+            <span>成长进度</span><span id="goalProgress">0%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill orange" id="goalProgressBar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// State
+let userGrade = '';
+let userGoals = {};
+const gradeMap = {
+  freshman: { name:'大一·探索期', icon:'🌱', color:'var(--freshman)' },
+  sophomore: { name:'大二·成长期', icon:'🌿', color:'var(--sophomore)' },
+  junior: { name:'大三·实习期', icon:'🌳', color:'var(--junior)' },
+  senior: { name:'大四/研·求职期', icon:'🍊', color:'var(--senior)' },
+};
+
+// Daily inspirations
+const dailyInspirations = [
+  { icon:'🌟', quote:'每一步都算数，未来不会辜负每一个认真准备的人', tip:'今天花30分钟了解一个你感兴趣的岗位吧' },
+  { icon:'💪', quote:'成长不是一蹴而就的冲刺，而是日复一日的坚持', tip:'尝试写下你今天的三个小收获' },
+  { icon:'🎯', quote:'方向比速度更重要，先找到你真正热爱的领域', tip:'去Boss直聘或牛客网浏览10个岗位JD，感受下行业需求' },
+  { icon:'🌈', quote:'每一次尝试都是未来的伏笔，不要怕试错', tip:'联系一位学长学姐，听听他们的求职故事' },
+  { icon:'🔥', quote:'你今天学到的每一个技能，都是明天谈薪的筹码', tip:'今天的建议：搭建你的GitHub个人主页' },
+];
+
+// Knowledge base
+const knowledgeBase = [
+  { icon:'🏢', title:'腾讯业务全景', desc:'社交(微信/QQ)、游戏、金融科技、云服务、AI大模型、企业服务六大业务线' },
+  { icon:'💻', title:'互联网岗位类型', desc:'技术研发、产品经理、设计、运营、市场、职能六大序列，了解每个岗位的核心能力要求' },
+  { icon:'📈', title:'行业趋势报告', desc:'AIGC、出海、产业互联网是当前三大热点方向，建议关注相关技术栈' },
+  { icon:'🎓', title:'腾讯校招时间线', desc:'暑期实习: 3-4月投递→5-6月面试；秋招: 7-8月提前批→9-10月正式批→11月补录' },
+  { icon:'🏋️', title:'技术能力地图', desc:'前端/后端/算法/数据四条技术路线，每条路线从L1到L5的能力要求拆解' },
+  { icon:'📝', title:'简历与面试指南', desc:'STAR法则写简历、技术面常见考点、行为面试准备框架、群面角色策略' },
+  { icon:'🤝', title:'鹅厂培养体系', desc:'导师制、新人培训、技术分享文化、内部知识库、跨团队轮岗机会' },
+  { icon:'💡', title:'从校园到职场', desc:'如何利用社团/竞赛/开源项目积累经验，大一大二也可以开始准备' },
+];
+
+// AI responses database
+const aiResponses = {
+  freshman: {
+    default: "大一正是探索的黄金期！不用急着确定方向，但可以开始做这几件事：① 了解互联网行业有哪些岗位；② 尝试学一门编程语言（比如Python）；③ 参加技术社团或Hackathon。你对哪个方向比较好奇呢？",
+    skills: "大一建议先打好基础：编程方面可以从Python或前端(HTML/CSS/JS)入手；产品方面可以多看产品分析文章，培养产品sense；设计方面可以学Figma。关键是找到你真正感兴趣的方向～",
+    tencent: "现在了解腾讯正当时！腾讯有六大业务线：微信生态、互动娱乐(游戏)、云与智慧产业、平台与内容、企业服务、AI大模型。你可以从官网和腾讯招聘公众号开始关注～",
+    intern: "大一不用太焦虑实习，但可以关注腾讯的「灯塔计划」和「技术早鸟」项目，这些是面向低年级的体验项目哦～",
+  },
+  sophomore: {
+    default: "大二是积累的关键期！建议你：① 确定1-2个感兴趣的方向深入学习；② 参与一个实际项目（课程设计、开源、社团都行）；③ 开始关注目标企业的招聘要求，对照提升。想具体聊聊某个方向吗？",
+    skills: "大二建议深入一个技术栈：想做前端就深耕React/Vue+TypeScript；想做后端就深入Go/Java+数据库；想做AI就打好Python+数学基础+深度学习框架。关键是「深度>广度」～",
+    tencent: "大二可以开始关注腾讯的实习生招聘JD了，看看心仪岗位的要求，制定学习计划。腾讯比较看重：扎实的基础、项目经验、学习能力、团队协作。现在开始积累完全来得及！",
+    intern: "大二暑假可以尝试找第一份实习了！不一定要去大厂，创业公司或中小厂也是很好的起点。关键是积累真实的工作经验和项目经历。腾讯的日常实习也可以开始投了～",
+  },
+  junior: {
+    default: "大三到了关键的实习冲刺期！① 现在就可以开始投递腾讯暑期实习（转正率很高！）；② 把简历打磨到极致；③ 刷题+项目复盘两手抓。需要我帮你看看简历准备吗？",
+    skills: "面试季重点：算法题保持手感（LeetCode高频题）、项目要能讲清楚「为什么做-怎么做-效果如何」、系统设计也要准备。对自己薄弱环节不要逃避，针对性地补～",
+    tencent: "腾讯暑期实习一般在3-4月集中招聘，建议关注「腾讯招聘」公众号和官网。暑期实习转正率很高，是一次很好的「提前上岸」机会！内推渠道也要利用起来～",
+    intern: "投递策略：① 不要只盯一个部门，多线并行；② 准备2-3个版本的简历针对不同岗位；③ 每次面试后及时复盘总结。记住：面试也是学习的过程！",
+  },
+  senior: {
+    default: "求职冲刺阶段，你辛苦了！当前重点：① 梳理所有已投递岗位，做好进度管理；② 每次面试认真复盘；③ 同时准备Plan B（备选公司/岗位）。焦虑是正常的，但你已经准备很久了，相信自己的积累！",
+    skills: "临门一脚的建议：① 把简历上的每个项目都练到能脱稿讲5分钟；② HR面也要重视，准备你的「故事线」；③ 保持心态平稳，面试是双向选择。你很优秀，只是需要合适的时机和缘分～",
+    tencent: "腾讯秋招正式批一般9-10月，补录11-12月。如果还没拿到心仪offer，补录和春招都是机会。拿到offer后可以提前了解部门、联系导师，做好入职前的准备～",
+    intern: "这个阶段更多是正式岗位了。但如果想通过实习转正，日常实习也是一个路径。评估好自己的时间，做好Plan A和Plan B。相信你的积累，offer就在路上！",
+  }
+};
+
+function startJourney(grade) {
+  userGrade = grade;
+  // Initialize goals
+  userGoals = getGoalsForGrade(grade).reduce((acc, g) => { acc[g.id] = false; return acc; }, {});
+  document.getElementById('onboarding').style.display = 'none';
+  document.getElementById('dashboard').classList.add('show');
+  document.getElementById('gradeBadge').style.display = '';
+  document.getElementById('gradeLabel').textContent = gradeMap[grade].name + ' ' + gradeMap[grade].icon;
+  renderDaily();
+  initChat();
+  renderRoadmap();
+  renderKnowledge();
+  renderGoals();
+}
+
+function renderDaily() {
+  const d = dailyInspirations[Math.floor(Math.random() * dailyInspirations.length)];
+  document.getElementById('dailyCard').innerHTML = `
+    <div class="daily-icon">${d.icon}</div>
+    <div class="daily-quote">"${d.quote}"</div>
+    <div class="daily-tip">💡 ${d.tip}</div>
+  `;
+}
+
+// Chat
+function initChat() {
+  const msgs = document.getElementById('chatMessages');
+  const quick = document.getElementById('chatQuick');
+  const info = gradeMap[userGrade];
+  msgs.innerHTML = `
+    <div class="chat-msg ai">
+      👋 嗨！我是未来鹅，你的专属职业成长伙伴～<br>
+      看到你是 <strong>${info.name}</strong>，我会根据这个阶段给你最贴心的陪伴和建议！<br>
+      你可以问我任何关于职业规划、技能学习、行业认知、腾讯相关的问题～
+      <div class="msg-time">刚刚</div>
+    </div>
+  `;
+  quick.innerHTML = `
+    <button class="chat-quick-btn" onclick="quickAsk('我该学什么技能？')">🛠️ 我该学什么技能？</button>
+    <button class="chat-quick-btn" onclick="quickAsk('腾讯是一家怎样的公司？')">🏢 腾讯是怎样的公司？</button>
+    <button class="chat-quick-btn" onclick="quickAsk('什么时候开始找实习？')">🔍 什么时候找实习？</button>
+    <button class="chat-quick-btn" onclick="quickAsk('现在该做什么准备？')">📋 现在该做什么准备？</button>
+  `;
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function quickAsk(q) {
+  document.getElementById('chatInput').value = q;
+  sendMessage();
+}
+
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const msgs = document.getElementById('chatMessages');
+  msgs.innerHTML += `<div class="chat-msg user">${msg}<div class="msg-time">刚刚</div></div>`;
+
+  // Simulate AI thinking
+  setTimeout(() => {
+    const reply = getAIResponse(msg);
+    msgs.innerHTML += `<div class="chat-msg ai">${reply}<div class="msg-time">刚刚</div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 800);
+
+  input.value = '';
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function getAIResponse(msg) {
+  const resp = aiResponses[userGrade];
+  const m = msg.toLowerCase();
+  if (m.includes('技能') || m.includes('学什么')) return resp.skills;
+  if (m.includes('腾讯') || m.includes('公司')) return resp.tencent;
+  if (m.includes('实习') || m.includes('找') || m.includes('投递')) return resp.intern;
+  return resp.default;
+}
+
+// Roadmap
+function getRoadmap(grade) {
+  const roadmaps = {
+    freshman: [
+      { title:'探索互联网行业', desc:'了解行业概况、岗位分类、技术趋势，建立初步认知', status:'current' },
+      { title:'学习第一门编程语言', desc:'推荐Python或前端基础(HTML/CSS/JS)，感受创造的乐趣', status:'current' },
+      { title:'加入技术/产品社团', desc:'参与校园技术社团、Hackathon，找到志同道合的伙伴', status:'upcoming' },
+      { title:'建立学习习惯', desc:'每天30分钟技术阅读，关注技术博客和行业资讯', status:'upcoming' },
+      { title:'完成第一个个人项目', desc:'用学到的技能做一个小作品：个人主页、小游戏、数据分析报告', status:'upcoming' },
+    ],
+    sophomore: [
+      { title:'确定职业方向', desc:'通过实践和探索，锁定1-2个感兴趣的岗位方向', status:'done' },
+      { title:'深入学习核心技能', desc:'选定技术栈深入钻研，完成2-3个有质量的项目', status:'current' },
+      { title:'参加技术竞赛', desc:'参加ACM、Kaggle、小程序开发大赛等，积累竞技经验', status:'current' },
+      { title:'准备第一份实习简历', desc:'整理项目经历，用STAR法则撰写简历', status:'upcoming' },
+      { title:'尝试投递日常实习', desc:'投递腾讯等企业的日常实习或体验项目', status:'upcoming' },
+    ],
+    junior: [
+      { title:'打磨核心技能', desc:'持续深入学习，确保技术基础扎实', status:'done' },
+      { title:'复盘项目经历', desc:'将每个项目梳理成STAR模式的面试素材', status:'done' },
+      { title:'投递暑期实习', desc:'3-4月集中投递腾讯等目标企业暑期实习', status:'current' },
+      { title:'面试准备与复盘', desc:'刷题+模拟面试+每次面试后认真复盘', status:'current' },
+      { title:'争取转正机会', desc:'实习期间全力以赴，争取转正offer', status:'upcoming' },
+    ],
+    senior: [
+      { title:'积累相关实习经验', desc:'通过实习验证职业方向，积累行业经验', status:'done' },
+      { title:'参加秋招提前批', desc:'7-8月抓住提前批窗口，多一次机会', status:'done' },
+      { title:'正式批全面投递', desc:'9-10月秋招正式批，多线并行投递', status:'current' },
+      { title:'面试复盘与调整', desc:'根据反馈调整策略，补强薄弱环节', status:'current' },
+      { title:'选择offer与入职准备', desc:'评估offer，了解部门，做好入职前准备', status:'upcoming' },
+    ],
+  };
+  return roadmaps[grade] || roadmaps.freshman;
+}
+
+function renderRoadmap() {
+  const items = getRoadmap(userGrade);
+  document.getElementById('timeline').innerHTML = items.map((item, i) => `
+    <div class="timeline-item">
+      <div class="timeline-dot ${item.status}"></div>
+      <div class="timeline-content">
+        <h4>${i+1}. ${item.title}</h4>
+        <p>${item.desc}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderKnowledge() {
+  document.getElementById('knowledgeGrid').innerHTML = knowledgeBase.map(k => `
+    <div class="knowledge-card" onclick="showToast('📖 ${k.title}','了解更多关于 ${k.title} 的内容')">
+      <div class="kc-icon">${k.icon}</div>
+      <div class="kc-title">${k.title}</div>
+      <div class="kc-desc">${k.desc}</div>
+    </div>
+  `).join('');
+}
+
+// Goals
+function getGoalsForGrade(grade) {
+  const goalSets = {
+    freshman: [
+      { id:'g1', title:'了解5个互联网岗位', detail:'通过官网、知乎、牛客了解产品/前端/后端/数据/设计岗位' },
+      { id:'g2', title:'完成编程入门课程', detail:'在B站或Coursera完成一门Python或前端入门课程' },
+      { id:'g3', title:'关注腾讯招聘公众号', detail:'了解校招动态和岗位要求' },
+      { id:'g4', title:'参加1次技术分享活动', detail:'线上或线下的技术沙龙、比赛、Meetup' },
+    ],
+    sophomore: [
+      { id:'g1', title:'完成2个实战项目', detail:'用GitHub托管代码，写好README和文档' },
+      { id:'g2', title:'刷LeetCode 50题', detail:'覆盖数组、链表、树、动态规划等核心题型' },
+      { id:'g3', title:'撰写第一版简历', detail:'按照STAR法则整理所有项目经历' },
+      { id:'g4', title:'建立技术博客', detail:'在掘金/知乎/CSDN输出技术文章，建立个人品牌' },
+    ],
+    junior: [
+      { id:'g1', title:'投递10家目标企业', detail:'含腾讯、阿里、字节、美团等，做好进度追踪' },
+      { id:'g2', title:'完成3次模拟面试', detail:'找学长学姐或使用AI模拟面试工具练习' },
+      { id:'g3', title:'刷LeetCode 100题', detail:'重点刷目标企业的高频考题' },
+      { id:'g4', title:'收获暑期实习offer', detail:'全力以赴在暑期实习中表现，争取转正' },
+    ],
+    senior: [
+      { id:'g1', title:'投递20+目标岗位', detail:'覆盖第一梯队+第二梯队企业，做好投递记录' },
+      { id:'g2', title:'完成5次面试复盘', detail:'每次面试后记录问题和改进点' },
+      { id:'g3', title:'准备3版自我介绍', detail:'技术面版、HR面版、群面版，各有侧重' },
+      { id:'g4', title:'拿到心仪offer', detail:'评估offer、了解团队、规划入职' },
+    ],
+  };
+  return goalSets[grade] || goalSets.freshman;
+}
+
+function renderGoals() {
+  const goals = getGoalsForGrade(userGrade);
+  const doneCount = Object.values(userGoals).filter(Boolean).length;
+  const pct = Math.round(doneCount / goals.length * 100);
+
+  document.getElementById('goalList').innerHTML = goals.map(g => `
+    <div class="goal-item">
+      <div class="goal-check ${userGoals[g.id] ? 'done' : ''}" onclick="toggleGoal('${g.id}')">
+        ${userGoals[g.id] ? '✓' : ''}
+      </div>
+      <div class="goal-info">
+        <div class="goal-title">${g.title}</div>
+        <div class="goal-detail">${g.detail}</div>
+      </div>
+      <span class="goal-badge">${userGoals[g.id] ? '✅ 完成' : '进行中'}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('goalProgress').textContent = pct + '%';
+  document.getElementById('goalProgressBar').style.width = pct + '%';
+
+  if (pct === 100) {
+    showToast('🎉 恭喜！你已完成本阶段所有目标！', 'success');
+  }
+}
+
+function toggleGoal(id) {
+  userGoals[id] = !userGoals[id];
+  renderGoals();
+}
+
+// Tab switching
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.hidden-section').forEach(s => s.classList.remove('show'));
+  document.querySelector(`.tab:nth-child(${['chat','roadmap','knowledge','goals'].indexOf(tab)+1})`).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('show');
+  if (tab === 'chat') {
+    document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+  }
+}
+
+function showToast(msg, type) {
+  const t = document.createElement('div');
+  t.className = 'toast ' + (type || 'success');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// Refresh daily on new day
+setInterval(() => {
+  const now = new Date();
+  if (now.getHours() === 0 && now.getMinutes() === 0) renderDaily();
+}, 60000);
+</script>
+</body>
+</html>

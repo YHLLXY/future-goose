@@ -3,910 +3,316 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>未来鹅 - 大学生职业成长AI陪伴体</title>
+<title>未来鹅 V2 · 大学生职业成长AI陪伴体</title>
 <style>
-  :root {
-    --primary: #f97316; --primary-dark: #ea580c; --secondary: #fb923c;
-    --accent: #fbbf24; --bg: #fffbeb; --card: #ffffff; --text: #1e293b;
-    --text-light: #64748b; --border: #fed7aa; --shadow: 0 4px 24px rgba(249,115,22,0.08);
-    --freshman: #10b981; --sophomore: #3b82f6; --junior: #8b5cf6; --senior: #f97316;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Particle background */
-  .particles { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; }
-  .particle {
-    position: absolute; border-radius: 50%; animation: floatUp linear infinite; opacity: 0.3;
-  }
-  @keyframes floatUp {
-    0% { transform: translateY(100vh) scale(0); opacity: 0; }
-    10% { opacity: 0.3; }
-    90% { opacity: 0.3; }
-    100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
-  }
-
-  /* Header */
-  .header {
-    background: linear-gradient(135deg, #f97316 0%, #fb923c 40%, #fbbf24 100%);
-    color: white; padding: 16px 24px; text-align: center; position: sticky; top: 0;
-    z-index: 100; box-shadow: 0 2px 16px rgba(249,115,22,0.2);
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-  }
-  .header .brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-  .header .logo { font-size: 36px; animation: bounce 2s ease-in-out infinite; }
-  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-  .header h1 { font-size: 22px; font-weight: 700; }
-  .header-actions { display: flex; gap: 8px; align-items: center; }
-  .grade-switcher {
-    padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
-    background: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.3);
-    cursor: pointer; transition: all 0.3s; backdrop-filter: blur(4px);
-    display: flex; align-items: center; gap: 6px;
-  }
-  .grade-switcher:hover { background: rgba(255,255,255,0.35); transform: scale(1.05); }
-
-  /* Grade selector modal */
-  .modal-overlay {
-    display: none; position: fixed; inset:0; background: rgba(0,0,0,0.5);
-    z-index: 200; align-items: center; justify-content: center; animation: fadeIn 0.3s ease;
-  }
-  .modal-overlay.show { display: flex; }
-  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-  .modal {
-    background: white; border-radius: 20px; padding: 32px 24px; max-width: 600px;
-    width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.4s ease;
-  }
-  @keyframes slideUp { from { transform:translateY(40px); opacity:0; } to { transform:translateY(0); opacity:1; } }
-  .modal h2 { text-align: center; margin-bottom: 20px; }
-  .modal .grade-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
-
-  /* Main Layout */
-  .main-layout { max-width: 1000px; margin: 0 auto; padding: 20px 16px 80px; position: relative; z-index: 1; }
-
-  /* Onboarding */
-  .onboarding { text-align: center; padding: 48px 24px; }
-  .onboarding .mascot { font-size: 80px; animation: float 3s ease-in-out infinite; }
-  @keyframes float { 0%,100% { transform: translateY(0) rotate(0deg); } 25% { transform: translateY(-15px) rotate(-3deg); } 75% { transform: translateY(-15px) rotate(3deg); } }
-  .onboarding h2 { font-size: 28px; margin: 16px 0 8px; font-weight: 700; }
-  .onboarding .subtitle { color: var(--text-light); margin-bottom: 32px; font-size: 16px; }
-  .grade-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; max-width: 800px; margin: 0 auto; }
-  @media (max-width: 768px) { .grade-cards { grid-template-columns: repeat(2,1fr); } }
-  .grade-card {
-    padding: 28px 16px; border-radius: 16px; cursor: pointer; transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
-    border: 2px solid var(--border); background: white; text-align: center; position: relative; overflow: hidden;
-  }
-  .grade-card::before {
-    content:''; position:absolute; inset:0; opacity:0; transition: opacity 0.4s;
-    border-radius: 16px;
-  }
-  .grade-card.freshman::before { background: linear-gradient(135deg, #d1fae5, #a7f3d0); }
-  .grade-card.sophomore::before { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
-  .grade-card.junior::before { background: linear-gradient(135deg, #ede9fe, #ddd6fe); }
-  .grade-card.senior::before { background: linear-gradient(135deg, #fff7ed, #fed7aa); }
-  .grade-card:hover::before { opacity: 0.5; }
-  .grade-card:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 16px 40px rgba(0,0,0,0.12); }
-  .grade-card .grade-icon { font-size: 44px; margin-bottom: 8px; position: relative; z-index: 1; transition: transform 0.3s; }
-  .grade-card:hover .grade-icon { transform: scale(1.2) rotate(-10deg); }
-  .grade-card .grade-name { font-weight: 700; font-size: 16px; margin-bottom: 4px; position: relative; z-index: 1; }
-  .grade-card .grade-desc { font-size: 12px; color: var(--text-light); position: relative; z-index: 1; }
-
-  /* Dashboard */
-  .dashboard { display: none; }
-  .dashboard.show { display: block; animation: fadeInUp 0.5s ease; }
-  @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
-
-  /* Tabs */
-  .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: white; border-radius: 14px; padding: 4px; box-shadow: var(--shadow); }
-  .tab {
-    flex: 1; padding: 12px 12px; border: none; background: transparent; border-radius: 10px;
-    cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-light); transition: all 0.3s;
-    display: flex; align-items: center; justify-content: center; gap: 4px; position: relative; overflow: hidden;
-  }
-  .tab:hover { background: #fff7ed; }
-  .tab.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(249,115,22,0.3); animation: tabPop 0.3s ease; }
-  @keyframes tabPop { 0% { transform: scale(0.95); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-  /* Cards */
-  .card {
-    background: var(--card); border-radius: 16px; padding: 24px;
-    box-shadow: var(--shadow); margin-bottom: 16px; transition: all 0.3s ease;
-    animation: cardIn 0.5s ease both;
-  }
-  @keyframes cardIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-  .card:hover { box-shadow: 0 8px 32px rgba(249,115,22,0.12); }
-  .card h3 { font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-
-  /* Chat */
-  .chat-container { display: flex; flex-direction: column; height: 500px; }
-  .chat-messages { flex: 1; overflow-y: auto; padding: 8px 4px; display: flex; flex-direction: column; gap: 12px; }
-  .chat-msg {
-    max-width: 85%; padding: 12px 16px; border-radius: 14px; font-size: 14px; line-height: 1.7;
-    animation: msgIn 0.4s cubic-bezier(0.4,0,0.2,1);
-  }
-  @keyframes msgIn { from { opacity:0; transform:translateY(12px) scale(0.96); } to { opacity:1; transform:translateY(0) scale(1); } }
-  .chat-msg.ai { background: #fff7ed; align-self: flex-start; border-bottom-left-radius: 4px; }
-  .chat-msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-  .chat-msg .msg-time { font-size: 10px; opacity: 0.5; margin-top: 4px; }
-  .chat-quick { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-  .chat-quick-btn {
-    padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
-    border: 1px solid var(--border); background: white; transition: all 0.3s;
-    white-space: nowrap;
-  }
-  .chat-quick-btn:hover { background: #fff7ed; border-color: var(--primary); transform: translateY(-2px); }
-  .chat-input-row { display: flex; gap: 8px; margin-top: 8px; }
-  .chat-input-row input {
-    flex: 1; padding: 12px 16px; border: 2px solid var(--border); border-radius: 24px;
-    font-size: 14px; outline: none; font-family: inherit; transition: border-color 0.3s;
-  }
-  .chat-input-row input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(249,115,22,0.1); }
-  .chat-input-row button {
-    width: 44px; height: 44px; border-radius: 50%; border: none;
-    background: var(--primary); color: white; font-size: 18px; cursor: pointer;
-    transition: all 0.3s; flex-shrink: 0;
-  }
-  .chat-input-row button:hover { background: var(--primary-dark); transform: scale(1.1); }
-
-  /* Chat typing indicator */
-  .typing { display: flex; gap: 4px; padding: 12px 16px; align-self: flex-start; }
-  .typing span {
-    width: 8px; height: 8px; border-radius: 50%; background: var(--secondary);
-    animation: typing 1.4s ease-in-out infinite;
-  }
-  .typing span:nth-child(2) { animation-delay: 0.2s; }
-  .typing span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes typing { 0%,60%,100% { transform: translateY(0); opacity:0.4; } 30% { transform: translateY(-8px); opacity:1; } }
-
-  /* Roadmap Timeline */
-  .timeline { position: relative; padding-left: 28px; }
-  .timeline::before {
-    content: ''; position: absolute; left: 12px; top: 8px; bottom: 8px;
-    width: 3px; background: linear-gradient(to bottom, var(--freshman), var(--sophomore), var(--junior), var(--senior));
-    border-radius: 2px;
-  }
-  .timeline-item { position: relative; margin-bottom: 24px; }
-  .timeline-dot {
-    position: absolute; left: -22px; top: 4px; width: 14px; height: 14px;
-    border-radius: 50%; border: 3px solid white; transition: all 0.3s;
-  }
-  .timeline-dot.done { background: var(--freshman); box-shadow: 0 0 0 4px rgba(16,185,129,0.2); }
-  .timeline-dot.current { background: var(--accent); animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 4px rgba(251,191,36,0.2); } 50% { box-shadow: 0 0 0 12px rgba(251,191,36,0.3); } }
-  .timeline-dot.upcoming { background: #e2e8f0; box-shadow: 0 0 0 4px #e2e8f0; }
-  .timeline-content {
-    background: white; border-radius: 12px; padding: 16px; transition: all 0.3s;
-    border: 1px solid var(--border);
-  }
-  .timeline-content:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateX(4px); }
-  .timeline-content h4 { font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
-  .timeline-content .tl-tag {
-    font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600;
-  }
-  .tl-tag.must { background: #fee2e2; color: #dc2626; }
-  .tl-tag.recommend { background: #dbeafe; color: #2563eb; }
-  .timeline-content p { font-size: 13px; color: var(--text-light); margin: 6px 0; }
-  .timeline-content .tl-resources { font-size: 12px; color: var(--primary); margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
-  .tl-resources span { padding: 3px 8px; background: #fff7ed; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-  .tl-resources span:hover { background: #fed7aa; }
-
-  /* Knowledge cards */
-  .knowledge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
-  .knowledge-card {
-    padding: 20px; border-radius: 14px; border: 1px solid var(--border); cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.4,0,0.2,1); background: white;
-    position: relative; overflow: hidden;
-  }
-  .knowledge-card::after {
-    content: ''; position: absolute; top: -50%; right: -50%; width: 100%; height: 100%;
-    background: radial-gradient(circle, rgba(249,115,22,0.1), transparent);
-    opacity: 0; transition: opacity 0.4s;
-  }
-  .knowledge-card:hover::after { opacity: 1; }
-  .knowledge-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
-  .knowledge-card .kc-icon { font-size: 36px; margin-bottom: 8px; transition: transform 0.4s; }
-  .knowledge-card:hover .kc-icon { transform: scale(1.2) rotate(5deg); }
-  .knowledge-card .kc-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-  .knowledge-card .kc-desc { font-size: 12px; color: var(--text-light); }
-
-  /* Knowledge detail modal */
-  .knowledge-detail { display: none; }
-  .knowledge-detail.show { display: block; animation: fadeInUp 0.4s ease; }
-
-  /* Daily card */
-  .daily-card {
-    background: linear-gradient(135deg, #fff7ed, #fffbeb);
-    border: 2px solid var(--accent); border-radius: 16px; padding: 24px;
-    text-align: center; margin-bottom: 16px; position: relative; overflow: hidden;
-    animation: glowPulse 3s ease-in-out infinite;
-  }
-  @keyframes glowPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(251,191,36,0.3); } 50% { box-shadow: 0 0 20px 8px rgba(251,191,36,0.15); } }
-  .daily-card .daily-icon { font-size: 48px; margin-bottom: 8px; animation: float 2.5s ease-in-out infinite; }
-  .daily-card .daily-quote { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
-  .daily-card .daily-tip { font-size: 13px; color: var(--text-light); }
-
-  /* Goal tracker */
-  .goal-section { margin-bottom: 20px; }
-  .goal-section h4 { font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-  .goal-item {
-    display: flex; align-items: center; gap: 12px; padding: 10px 0;
-    border-bottom: 1px solid var(--border); transition: all 0.3s;
-  }
-  .goal-item:last-child { border-bottom: none; }
-  .goal-item:hover { background: #fffbeb; margin: 0 -8px; padding-left: 8px; padding-right: 8px; border-radius: 8px; }
-  .goal-check {
-    width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border);
-    cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    font-size: 14px; color: transparent;
-  }
-  .goal-check:hover { border-color: var(--freshman); transform: scale(1.15); }
-  .goal-check.done { background: var(--freshman); border-color: var(--freshman); color: white; animation: checkPop 0.4s ease; }
-  @keyframes checkPop { 0% { transform: scale(0.5); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
-  .goal-info { flex: 1; }
-  .goal-info .goal-title { font-size: 14px; font-weight: 500; }
-  .goal-info .goal-detail { font-size: 12px; color: var(--text-light); }
-  .goal-badge {
-    padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap;
-    background: #fef3c7; color: #92400e; transition: all 0.3s;
-  }
-  .goal-badge.done { background: #d1fae5; color: #065f46; }
-
-  .progress-bar {
-    height: 10px; border-radius: 5px; background: #e2e8f0; overflow: hidden; margin-top: 8px;
-  }
-  .progress-fill {
-    height: 100%; border-radius: 5px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
-    background: linear-gradient(90deg, #f97316, #fbbf24);
-  }
-
-  /* Buttons */
-  .btn {
-    padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
-    cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); border: none;
-    display: inline-flex; align-items: center; gap: 6px;
-  }
-  .btn-primary { background: var(--primary); color: white; }
-  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(249,115,22,0.3); }
-  .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
-
-  .hidden-section { display: none; }
-  .hidden-section.show { display: block; }
-
-  /* Confetti */
-  .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 300; }
-  .confetti-piece {
-    position: absolute; width: 12px; height: 12px; border-radius: 3px;
-    animation: confettiFall linear forwards;
-  }
-  @keyframes confettiFall {
-    0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
-    100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
-  }
-
-  /* Toast */
-  .toast {
-    position: fixed; top: 24px; right: 24px; padding: 14px 24px;
-    border-radius: 10px; color: white; font-weight: 500; z-index: 1000;
-    animation: slideIn 0.4s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  }
-  .toast.success { background: var(--freshman); }
-  @keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
-
-  /* Refresh icon rotation */
-  .refresh-icon { cursor: pointer; transition: transform 0.6s; display: inline-block; }
-  .refresh-icon:hover { transform: rotate(180deg); }
+  :root{--primary:#f97316;--primary-dark:#ea580c;--secondary:#fb923c;--accent:#fbbf24;--bg:#fffbeb;--card:#ffffff;--text:#1e293b;--text-light:#64748b;--border:#fed7aa;--shadow:0 4px 24px rgba(249,115,22,0.08);--freshman:#10b981;--sophomore:#3b82f6;--junior:#8b5cf6;--senior:#f97316}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+  .particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+  .particle{position:absolute;border-radius:50%;animation:floatUp linear infinite;opacity:0.3}
+  @keyframes floatUp{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:0.3}90%{opacity:0.3}100%{transform:translateY(-10vh) scale(1.5);opacity:0}}
+  .header{background:linear-gradient(135deg,#f97316 0%,#fb923c 40%,#fbbf24 100%);color:white;padding:16px 24px;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(249,115,22,0.2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .header .brand{display:flex;align-items:center;gap:10px;cursor:pointer}
+  .header .logo{font-size:36px;animation:bounce 2s ease-in-out infinite}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .header h1{font-size:22px;font-weight:700}
+  .header-actions{display:flex;gap:8px;align-items:center}
+  .grade-switcher{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;background:rgba(255,255,255,0.2);color:white;border:2px solid rgba(255,255,255,0.3);cursor:pointer;transition:all 0.3s;backdrop-filter:blur(4px);display:flex;align-items:center;gap:6px}
+  .grade-switcher:hover{background:rgba(255,255,255,0.35);transform:scale(1.05)}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;animation:fadeIn 0.3s ease}
+  .modal-overlay.show{display:flex}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .modal{background:white;border-radius:20px;padding:32px 24px;max-width:600px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp 0.4s ease;max-height:85vh;overflow-y:auto}
+  @keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .modal h2{text-align:center;margin-bottom:20px}
+  .modal .grade-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .main-layout{max-width:1000px;margin:0 auto;padding:20px 16px 80px;position:relative;z-index:1}
+  .onboarding{text-align:center;padding:48px 24px}
+  .onboarding .mascot{font-size:80px;animation:float 3s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}25%{transform:translateY(-15px) rotate(-3deg)}75%{transform:translateY(-15px) rotate(3deg)}}
+  .onboarding h2{font-size:28px;margin:16px 0 8px;font-weight:700}
+  .onboarding .subtitle{color:var(--text-light);margin-bottom:32px;font-size:16px}
+  .grade-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:800px;margin:0 auto}
+  @media(max-width:768px){.grade-cards{grid-template-columns:repeat(2,1fr)}}
+  .grade-card{padding:28px 16px;border-radius:16px;cursor:pointer;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);border:2px solid var(--border);background:white;text-align:center;position:relative;overflow:hidden;transform-style:preserve-3d;perspective:800px}
+  .grade-card:hover{transform:translateY(-6px) scale(1.03) rotateY(3deg) rotateX(-2deg);box-shadow:0 16px 40px rgba(0,0,0,0.12)}
+  .grade-card .grade-icon{font-size:44px;margin-bottom:8px;position:relative;z-index:1;transition:transform 0.3s}
+  .grade-card:hover .grade-icon{transform:scale(1.2) rotate(-10deg)}
+  .grade-card .grade-name{font-weight:700;font-size:16px;margin-bottom:4px;position:relative;z-index:1}
+  .grade-card .grade-desc{font-size:12px;color:var(--text-light);position:relative;z-index:1}
+  .dashboard{display:none}
+  .dashboard.show{display:block;animation:fadeInUp 0.5s ease}
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+  .tabs{display:flex;gap:4px;margin-bottom:20px;background:white;border-radius:14px;padding:4px;box-shadow:var(--shadow)}
+  .tab{flex:1;padding:12px 12px;border:none;background:transparent;border-radius:10px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-light);transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:4px}
+  .tab:hover{background:#fff7ed}
+  .tab.active{background:var(--primary);color:white;box-shadow:0 2px 8px rgba(249,115,22,0.3);animation:tabPop 0.3s ease}
+  @keyframes tabPop{0%{transform:scale(0.95)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+  .card{background:var(--card);border-radius:16px;padding:24px;box-shadow:var(--shadow);margin-bottom:16px;transition:all 0.3s ease;animation:cardIn 0.5s ease both}
+  @keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .card:hover{box-shadow:0 8px 32px rgba(249,115,22,0.12)}
+  .card h3{font-size:18px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .chat-container{display:flex;flex-direction:column;height:500px}
+  .chat-messages{flex:1;overflow-y:auto;padding:8px 4px;display:flex;flex-direction:column;gap:12px}
+  .chat-msg{max-width:85%;padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.7;animation:msgIn 0.4s cubic-bezier(0.4,0,0.2,1)}
+  @keyframes msgIn{from{opacity:0;transform:translateY(12px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .chat-msg.ai{background:#fff7ed;align-self:flex-start;border-bottom-left-radius:4px}
+  .chat-msg.user{background:var(--primary);color:white;align-self:flex-end;border-bottom-right-radius:4px}
+  .chat-msg .msg-time{font-size:10px;opacity:0.5;margin-top:4px}
+  .chat-quick{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .chat-quick-btn{padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:white;transition:all 0.3s;white-space:nowrap}
+  .chat-quick-btn:hover{background:#fff7ed;border-color:var(--primary);transform:translateY(-2px)}
+  .chat-input-row{display:flex;gap:8px;margin-top:8px}
+  .chat-input-row input{flex:1;padding:12px 16px;border:2px solid var(--border);border-radius:24px;font-size:14px;outline:none;font-family:inherit;transition:border-color 0.3s}
+  .chat-input-row input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(249,115,22,0.1)}
+  .chat-input-row button{width:44px;height:44px;border-radius:50%;border:none;background:var(--primary);color:white;font-size:18px;cursor:pointer;transition:all 0.3s;flex-shrink:0}
+  .chat-input-row button:hover{background:var(--primary-dark);transform:scale(1.1)}
+  .typing{display:flex;gap:4px;padding:12px 16px;align-self:flex-start}
+  .typing span{width:8px;height:8px;border-radius:50%;background:var(--secondary);animation:typing 1.4s ease-in-out infinite}
+  .typing span:nth-child(2){animation-delay:0.2s}.typing span:nth-child(3){animation-delay:0.4s}
+  @keyframes typing{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-8px);opacity:1}}
+  .timeline{position:relative;padding-left:28px}
+  .timeline::before{content:'';position:absolute;left:12px;top:8px;bottom:8px;width:3px;background:linear-gradient(to bottom,var(--freshman),var(--sophomore),var(--junior),var(--senior));border-radius:2px}
+  .timeline-item{position:relative;margin-bottom:24px}
+  .timeline-dot{position:absolute;left:-22px;top:4px;width:14px;height:14px;border-radius:50%;border:3px solid white;transition:all 0.3s}
+  .timeline-dot.done{background:var(--freshman);box-shadow:0 0 0 4px rgba(16,185,129,0.2)}
+  .timeline-dot.current{background:var(--accent);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(251,191,36,0.2)}50%{box-shadow:0 0 0 12px rgba(251,191,36,0.3)}}
+  .timeline-dot.upcoming{background:#e2e8f0;box-shadow:0 0 0 4px #e2e8f0}
+  .timeline-dot.unlocked{background:var(--freshman);animation:unlockPulse 1.5s ease-in-out}
+  @keyframes unlockPulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,0.6)}100%{box-shadow:0 0 0 16px rgba(16,185,129,0)}}
+  .timeline-content{background:white;border-radius:12px;padding:16px;transition:all 0.3s;border:1px solid var(--border)}
+  .timeline-content:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08);transform:translateX(4px)}
+  .timeline-content h4{font-size:15px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .timeline-content .tl-tag{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+  .tl-tag.must{background:#fee2e2;color:#dc2626}.tl-tag.recommend{background:#dbeafe;color:#2563eb}
+  .knowledge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .knowledge-card{padding:20px;border-radius:14px;border:1px solid var(--border);cursor:pointer;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);background:white;position:relative;overflow:hidden}
+  .knowledge-card:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 12px 32px rgba(0,0,0,0.1)}
+  .knowledge-card .kc-icon{font-size:36px;margin-bottom:8px;transition:transform 0.4s}
+  .knowledge-card:hover .kc-icon{transform:scale(1.2) rotate(5deg)}
+  .knowledge-detail{display:none;position:relative;overflow:hidden}
+  .knowledge-detail.show{display:block;animation:fadeInUp 0.4s ease}
+  .knowledge-detail::before{content:'';position:absolute;top:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,#f97316,transparent);animation:scanLine 3s linear infinite}
+  @keyframes scanLine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+  .daily-card{background:linear-gradient(135deg,#fff7ed,#fffbeb);border:2px solid var(--accent);border-radius:16px;padding:24px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden;animation:glowPulse 3s ease-in-out infinite}
+  @keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0.3)}50%{box-shadow:0 0 20px 8px rgba(251,191,36,0.15)}}
+  .goal-section{margin-bottom:20px}
+  .goal-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);transition:all 0.3s}
+  .goal-check{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:transparent}
+  .goal-check:hover{border-color:var(--freshman);transform:scale(1.15)}
+  .goal-check.done{background:var(--freshman);border-color:var(--freshman);color:white;animation:checkPop 0.4s ease}
+  @keyframes checkPop{0%{transform:scale(0.5)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+  .goal-badge{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap;background:#fef3c7;color:#92400e;transition:all 0.3s}
+  .goal-badge.done{background:#d1fae5;color:#065f46}
+  .progress-bar{height:10px;border-radius:5px;background:#e2e8f0;overflow:hidden;margin-top:8px}
+  .progress-fill{height:100%;border-radius:5px;transition:width 0.6s cubic-bezier(0.4,0,0.2,1);background:linear-gradient(90deg,#f97316,#fbbf24)}
+  .btn{padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);border:none;display:inline-flex;align-items:center;gap:6px}
+  .btn-primary{background:var(--primary);color:white}
+  .btn-primary:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:0 4px 16px rgba(249,115,22,0.3)}
+  .btn-sm{padding:6px 14px;font-size:12px;border-radius:8px}
+  .btn-outline{background:white;color:var(--primary);border:2px solid var(--primary)}
+  .hidden-section{display:none}
+  .hidden-section.show{display:block}
+  .confetti-container{position:fixed;inset:0;pointer-events:none;z-index:300}
+  .confetti-piece{position:absolute;width:12px;height:12px;border-radius:3px;animation:confettiFall linear forwards}
+  @keyframes confettiFall{0%{transform:translateY(-100px) rotate(0deg);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+  .toast{position:fixed;top:24px;right:24px;padding:14px 24px;border-radius:10px;color:white;font-weight:500;z-index:1000;animation:slideIn 0.4s cubic-bezier(0.4,0,0.2,1);box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+  .toast.success{background:var(--freshman)}
+  @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+  .refresh-icon{cursor:pointer;transition:transform 0.6s;display:inline-block}
+  .refresh-icon:hover{transform:rotate(180deg)}
+  .settings-panel{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:12px;border-top:1px solid var(--border)}
+  .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px}
+  .calendar-day{aspect-ratio:1;border-radius:4px;background:#e2e8f0;font-size:10px;display:flex;align-items:center;justify-content:center}
+  .calendar-day.active{background:var(--primary);color:white}
+  .calendar-day.visited{background:#fed7aa;color:#9a3412}
+  .search-input{padding:8px 14px;border:2px solid var(--border);border-radius:10px;font-size:13px;width:100%;outline:none;font-family:inherit;transition:border-color 0.3s}
+  .search-input:focus{border-color:var(--primary)}
 </style>
 </head>
 <body>
-
-<!-- Floating particles -->
 <div class="particles" id="particles"></div>
-
 <div class="header">
-  <div class="brand" onclick="location.reload()">
-    <span class="logo">🐧</span>
-    <h1>未来鹅 · 职业成长陪伴</h1>
-  </div>
-  <div class="header-actions">
-    <button class="grade-switcher" id="gradeSwitcherBtn" style="display:none;" onclick="openGradeSwitcher()">
-      🎓 <span id="gradeSwitcherLabel"></span> · 切换年级
-    </button>
-  </div>
+  <div class="brand" onclick="resetAll()"><span class="logo">🐧</span><h1>未来鹅 V2 · 职业成长陪伴</h1></div>
+  <div class="header-actions"><button class="grade-switcher" id="gradeSwitcherBtn" style="display:none" onclick="openGradeSwitcher()">🎓 <span id="gradeSwitcherLabel"></span> · 切换年级</button></div>
 </div>
-
-<!-- Grade Switcher Modal -->
-<div class="modal-overlay" id="gradeModal">
-  <div class="modal">
-    <h2>🔄 切换你的学习阶段</h2>
-    <p style="text-align:center;color:var(--text-light);margin-bottom:16px;">随时可以切换，你的目标和路线图会自动更新</p>
-    <div class="grade-grid" id="gradeModalGrid"></div>
-    <div style="text-align:center;margin-top:16px;">
-      <button class="btn btn-primary" onclick="closeGradeSwitcher()" style="background:#94a3b8;">取消</button>
-    </div>
-  </div>
-</div>
-
+<div class="modal-overlay" id="gradeModal"><div class="modal"><h2>🔄 切换你的学习阶段</h2><p style="text-align:center;color:var(--text-light);margin-bottom:16px">随时可以切换，你的目标和路线图会自动更新</p><div class="grade-grid" id="gradeModalGrid"></div><div style="text-align:center;margin-top:16px"><button class="btn btn-primary" onclick="closeGradeSwitcher()" style="background:#94a3b8">取消</button></div></div></div>
 <div class="main-layout">
-
-  <!-- Onboarding -->
-  <div class="onboarding" id="onboarding">
-    <div class="mascot">🐣</div>
-    <h2>你好！我是「未来鹅」</h2>
-    <p class="subtitle">你的 AI 职业成长陪伴伙伴，陪你从校园走向职场 ✨</p>
-    <p style="margin-bottom:24px;color:var(--text-light);">先告诉我你现在处于哪个阶段吧～（随时可以更改哦）</p>
-    <div class="grade-cards" id="onboardingCards"></div>
-  </div>
-
-  <!-- Dashboard -->
+  <div class="onboarding" id="onboarding"><div class="mascot">🐣</div><h2>你好！我是「未来鹅」</h2><p class="subtitle">你的 AI 职业成长陪伴伙伴，陪你从校园走向职场 ✨</p><p style="margin-bottom:24px;color:var(--text-light)">先告诉我你现在处于哪个阶段吧～</p><div class="grade-cards" id="onboardingCards"></div></div>
   <div class="dashboard" id="dashboard">
     <div class="daily-card" id="dailyCard"></div>
-
     <div class="tabs">
       <button class="tab active" onclick="switchTab('chat')">💬 AI 陪伴</button>
       <button class="tab" onclick="switchTab('roadmap')">🗺️ 成长路线图</button>
       <button class="tab" onclick="switchTab('knowledge')">📚 知识库</button>
       <button class="tab" onclick="switchTab('goals')">🎯 我的目标</button>
+      <button class="tab" onclick="switchTab('calendar')">📅 学习日历</button>
     </div>
-
-    <div class="hidden-section show" id="tab-chat"><div class="card"><h3>💬 与未来鹅深度对话</h3><div class="chat-container"><div class="chat-messages" id="chatMessages"></div><div class="chat-quick" id="chatQuick"></div><div class="chat-input-row"><input type="text" id="chatInput" placeholder="问我任何关于职业、技能、实习、腾讯的问题…" onkeydown="if(event.key==='Enter')sendMessage()"><button onclick="sendMessage()">➤</button></div></div></div></div>
-
-    <div class="hidden-section" id="tab-roadmap"><div class="card"><h3>🗺️ 你的专属成长路线图</h3><p style="color:var(--text-light);font-size:14px;margin-bottom:16px;">基于你当前阶段定制的成长路径，含推荐资源和时间节点</p><div class="timeline" id="timeline"></div></div></div>
-
-    <div class="hidden-section" id="tab-knowledge"><div class="card"><h3>📚 互联网行业知识库</h3><p style="color:var(--text-light);font-size:14px;margin-bottom:16px;">点击卡片查看详情，建立系统化行业认知</p><div class="knowledge-grid" id="knowledgeGrid"></div><div class="knowledge-detail card" id="knowledgeDetail"></div></div></div>
-
-    <div class="hidden-section" id="tab-goals"><div class="card"><h3>🎯 我的成长目标</h3><p style="color:var(--text-light);font-size:14px;margin-bottom:12px;">每日刷新 · 每周挑战 · 阶段任务 · 全部完成会有惊喜 🎉</p><div id="goalContainer"></div><div style="margin-top:16px;"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>总进度</span><span id="goalProgress">0%</span></div><div class="progress-bar"><div class="progress-fill" id="goalProgressBar" style="width:0%"></div></div></div></div></div>
+    <div class="hidden-section show" id="tab-chat"><div class="card"><h3>💬 与未来鹅深度对话</h3><div class="chat-container"><div class="chat-messages" id="chatMessages"></div><div class="chat-quick" id="chatQuick"></div><button class="btn btn-sm btn-outline" style="margin:4px 0" onclick="refreshTopics()">🔀 换一批推荐问题</button><div class="chat-input-row"><input type="text" id="chatInput" list="topicSuggest" placeholder="问我任何关于职业、技能、实习的问题…" onkeydown="if(event.key==='Enter')sendMessage()"><datalist id="topicSuggest"></datalist><button onclick="sendMessage()">➤</button></div></div></div></div>
+    <div class="hidden-section" id="tab-roadmap"><div class="card"><h3>🗺️ 你的专属成长路线图</h3><p style="color:var(--text-light);font-size:14px;margin-bottom:16px">基于你当前阶段定制的成长路径（目标完成后自动解锁里程碑）</p><div class="timeline" id="timeline"></div></div></div>
+    <div class="hidden-section" id="tab-knowledge"><div class="card"><h3>📚 互联网行业知识库</h3><input class="search-input" type="text" id="kbSearch" list="kbDatalist" placeholder="🔍 搜索知识库（输入关键词快速定位）..." oninput="filterKnowledge()"><datalist id="kbDatalist"></datalist><p style="color:var(--text-light);font-size:13px;margin:8px 0">共 <span id="kbCount">15</span> 个知识模块 · 点击展开详情 <button class="btn btn-sm btn-outline" onclick="randomRecommend()" style="margin-left:8px">🎲 随机推荐3个</button></p><div class="knowledge-grid" id="knowledgeGrid"></div><div class="knowledge-detail card" id="knowledgeDetail"></div></div></div>
+    <div class="hidden-section" id="tab-goals"><div class="card"><h3>🎯 我的成长目标</h3><p style="color:var(--text-light);font-size:14px;margin-bottom:12px">每日刷新 · 每周挑战 · 阶段任务 <span style="font-size:11px">（基于日期种子随机分配）</span></p><div id="goalContainer"></div><div style="margin-top:16px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>总进度</span><span id="goalProgress">0%</span></div><div class="progress-bar"><div class="progress-fill" id="goalProgressBar" style="width:0%"></div></div></div><div class="settings-panel"><button class="btn btn-sm btn-outline" onclick="resetGoals()">🔄 重置今日目标</button><button class="btn btn-sm btn-outline" onclick="clearChat()">💬 清空对话</button><button class="btn btn-sm btn-outline" onclick="resetAll()">🔃 恢复默认</button></div></div></div>
+    <div class="hidden-section" id="tab-calendar"><div class="card"><h3>📅 学习日历</h3><p style="color:var(--text-light);font-size:14px;margin-bottom:12px">记录每日访问，坚持就是胜利 🔥</p><div id="calendarView"></div></div></div>
   </div>
 </div>
-
 <div class="confetti-container" id="confetti"></div>
-
 <script>
-// ==================== STATE ====================
-let userGrade = '';
-let allGoals = {};   // { id: true/false }
-let goalSetCache = {};
-const todayStr = new Date().toISOString().split('T')[0];
+// ============ PARTICLES ============
+(function(){const c=document.getElementById('particles');const colors=['#fbbf24','#fb923c','#f97316','#fed7aa','#ffedd5','#10b981','#3b82f6','#8b5cf6'];for(let i=0;i<55;i++){const p=document.createElement('div');p.className='particle';p.style.cssText=`left:${Math.random()*100}%;width:${4+Math.random()*10}px;height:${4+Math.random()*10}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${8+Math.random()*20}s;animation-delay:${Math.random()*15}s;`;c.appendChild(p)}})();
 
-// ==================== PARTICLES ====================
-(function createParticles() {
-  const container = document.getElementById('particles');
-  const colors = ['#fbbf24','#fb923c','#f97316','#fed7aa','#ffedd5','#10b981','#3b82f6','#8b5cf6'];
-  for (let i = 0; i < 30; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.style.cssText = `
-      left:${Math.random()*100}%; width:${4+Math.random()*10}px; height:${4+Math.random()*10}px;
-      background:${colors[Math.floor(Math.random()*colors.length)]};
-      animation-duration:${8+Math.random()*20}s; animation-delay:${Math.random()*15}s;
-    `;
-    container.appendChild(p);
-  }
-})();
+// ============ STORAGE ============
+const SK='future_goose_v2';
+function ld(){try{const s=localStorage.getItem(SK);return s?JSON.parse(s):null}catch(e){return null}}
+function sv(d){localStorage.setItem(SK,JSON.stringify(d))}
+let state=ld()||{goals:{},chatHistory:[],visitDates:{}};
+let allGoals=state.goals||{},goalSetCache={},chatHistory=state.chatHistory||[],visitDates=state.visitDates||{};
+const todayStr=new Date().toISOString().split('T')[0];
+// Record visit
+visitDates[todayStr]=true;state.visitDates=visitDates;sv(state);
 
-// ==================== CONFETTI ====================
-function launchConfetti() {
-  const container = document.getElementById('confetti');
-  const colors = ['#fbbf24','#f97316','#10b981','#3b82f6','#8b5cf6','#ef4444','#ec4899','#14b8a6'];
-  for (let i = 0; i < 60; i++) {
-    setTimeout(() => {
-      const piece = document.createElement('div');
-      piece.className = 'confetti-piece';
-      piece.style.cssText = `
-        left:${Math.random()*100}%; top:-20px;
-        width:${8+Math.random()*14}px; height:${8+Math.random()*14}px;
-        background:${colors[Math.floor(Math.random()*colors.length)]};
-        animation-duration:${2+Math.random()*3}s;
-        border-radius:${Math.random()>0.5?'50%':'2px'};
-      `;
-      container.appendChild(piece);
-      setTimeout(() => piece.remove(), 3500);
-    }, i * 15);
-  }
+// ============ CONFETTI ============
+function launchConfetti(){const c=document.getElementById('confetti');const colors=['#fbbf24','#f97316','#10b981','#3b82f6','#8b5cf6','#ef4444','#ec4899','#14b8a6'];for(let i=0;i<60;i++){setTimeout(()=>{const p=document.createElement('div');p.className='confetti-piece';p.style.cssText=`left:${Math.random()*100}%;top:-20px;width:${8+Math.random()*14}px;height:${8+Math.random()*14}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${2+Math.random()*3}s;border-radius:${Math.random()>0.5?'50%':'2px'};`;c.appendChild(p);setTimeout(()=>p.remove(),3500)},i*15)}}
+function launchMiniConfetti(){const c=document.getElementById('confetti');const colors=['#fbbf24','#f97316','#10b981'];for(let i=0;i<20;i++){setTimeout(()=>{const p=document.createElement('div');p.className='confetti-piece';p.style.cssText=`left:${40+Math.random()*20}%;top:-20px;width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${1.5+Math.random()*2}s;`;c.appendChild(p);setTimeout(()=>p.remove(),3500)},i*20)}}
+
+// ============ GRADE SYSTEM ============
+const gradeInfo={freshman:{name:'大一·探索期',icon:'🌱',emoji:'🌱',slogan:'探索无限可能'},sophomore:{name:'大二·成长期',icon:'🌿',emoji:'🌿',slogan:'扎根积累力量'},junior:{name:'大三·实习期',icon:'🌳',emoji:'🌳',slogan:'蓄力冲刺舞台'},senior:{name:'大四/研·求职期',icon:'🍊',emoji:'🍊',slogan:'收获理想offer'}};
+let userGrade='';
+function getGradeCards(target){return Object.entries(gradeInfo).map(([key,g])=>`<div class="grade-card ${key}" onclick="${target==='onboarding'?`startJourney('${key}')`:`switchGrade('${key}')`}"><div class="grade-icon">${g.icon}</div><div class="grade-name">${g.name}</div><div class="grade-desc">${g.slogan}</div></div>`).join('')}
+document.getElementById('onboardingCards').innerHTML=getGradeCards('onboarding');
+document.getElementById('gradeModalGrid').innerHTML=getGradeCards('modal');
+
+// ============ DAILY INSPIRATION ============
+const dailyInspirations=[{icon:'🌟',quote:'每一步都算数，未来不会辜负每一个认真准备的人',tip:'今天花30分钟了解一个你感兴趣的岗位吧'},{icon:'💪',quote:'成长不是一蹴而就的冲刺，而是日复一日的坚持',tip:'尝试写下你今天的三个小收获'},{icon:'🎯',quote:'方向比速度更重要，先找到你真正热爱的领域',tip:'去招聘网站浏览10个岗位JD，感受行业需求'},{icon:'🌈',quote:'每一次尝试都是未来的伏笔，不要怕试错',tip:'联系一位学长学姐，听听他们的求职故事'},{icon:'🔥',quote:'你今天学到的每一个技能，都是明天谈薪的筹码',tip:'搭建你的GitHub个人主页，开始记录成长'},{icon:'🚀',quote:'没有人一开始就很厉害，但每个人都可以开始',tip:'每天写一段代码/读一篇产品分析，坚持21天'},{icon:'💡',quote:'机会永远留给有准备的人，而准备从今天开始',tip:'整理一份你感兴趣的企业的校招时间表'},{icon:'🎨',quote:'你的独特性就是你的竞争力，不要活成别人的模板',tip:'思考一下你和其他同学的最大区别是什么'},{icon:'🌻',quote:'种一棵树最好的时间是十年前，其次是现在',tip:'不要总等"准备好了"再开始行动'},{icon:'⚡',quote:'优秀的定义不是跑得快，而是选对方向持续前进',tip:'每周回顾一次自己的成长路径'},{icon:'🏔️',quote:'山顶的风景值得一步一步走上去',tip:'拆解大目标为小步骤，每完成一步都值得庆祝'},{icon:'🎵',quote:'求职季的节奏由你掌控，不要被他人的进度带偏',tip:'每天完成3件小事，积累起来的复利非常可观'},{icon:'🔑',quote:'第一份工作很重要，但没有那么重要——你有40年职业生涯',tip:'把眼光放长远，不要只看眼前薪资'},{icon:'🌊',quote:'潮水退去才知道谁在裸泳——扎实的基本功永远不过时',tip:'今天花20分钟复习一个基础知识点'},{icon:'✨',quote:'你会成为你想成为的人，所以请大胆想象',tip:'写一封信给3年后的自己'}];
+function renderDaily(){const d=dailyInspirations[new Date().getDate()%dailyInspirations.length];document.getElementById('dailyCard').innerHTML=`<div class="daily-icon">${d.icon}</div><div class="daily-quote">"${d.quote}"</div><div class="daily-tip">💡 ${d.tip}</div><div style="margin-top:10px;font-size:11px;color:var(--text-light)">📅 ${todayStr} · 每日更新 <span class="refresh-icon" onclick="renderDaily();launchMiniConfetti()">🔄</span></div>`}
+
+// ============ AI KNOWLEDGE ============
+const aiKnowledge={freshman:{intro:'大一正是探索的黄金期！',topics:{'了解互联网行业':'互联网行业六大方向：①技术研发 ②产品经理 ③设计 ④运营 ⑤市场与销售 ⑥职能。大一时每个方向都了解一下，找到你感兴趣的～\n\n📚 推荐关注「腾讯招聘」「字节跳动招聘」公众号、浏览牛客网。','学什么编程语言':'大一推荐从 Python 或前端（HTML/CSS/JavaScript）入手。Python适合AI/数据方向，前端所见即所得。先选定一门，学3个月后再扩展。','腾讯是怎样的公司':'腾讯是中国最大的互联网公司之一：社交(微信/QQ)、游戏(王者荣耀/和平精英)、云(腾讯云)、AI(混元大模型)、金融科技(微信支付)、内容(腾讯视频/QQ音乐)。企业文化：用户为本、科技向善。','参加什么社团活动':'大一推荐：技术类(ACM/开源社区)、产品类(产品经理协会)、实践类(Hackathon)、综合类(学生会)。关键不是参加了多少，而是做出了什么成果。','如何规划大学四年':'大一探索→大二聚焦→大三实践→大四冲刺。每学期设2-3个具体目标，每学期末复盘一次。','什么是STAR法则':'Situation→Task→Action→Result。写简历和面试的黄金框架。如"在XX项目中(S)，我负责优化页面性能(T)，通过代码分割和懒加载(A)，页面加载时间降低40%(R)。"','互联网行业前景':'2025-2026趋势：AI大模型全面落地、出海第二增长曲线、产业互联网深入制造业、数据安全岗位激增。关注AI+垂直行业交叉机会。','如何建立学习习惯':'每天固定30分钟学习时间，用Notion记录笔记。关注3-5个优质技术博客。关键是持续性，不是突击。'},default:'大一探索期！你可以问我：了解互联网行业、学什么编程语言、腾讯是怎样的公司...'},sophomore:{intro:'大二是积累的关键期！',topics:{'前端学习路线':'大二前端路径：①HTML/CSS/JS基础(1-2月)②React/Vue框架(2-3月)③TypeScript+工程化(1-2月)④Node.js+数据库+部署。检验标准：独立完成一个全栈项目。','后端学习路线':'大二后端路径：①语言选择Go(腾讯主流)或Java(通用)②数据结构与算法③框架(Gin/Spring Boot)④数据库(MySQL+Redis)⑤进阶(消息队列/容器化/微服务)。','AI/ML学习路线':'大二AI路径：①数学基础(线代/概率)②Python+NumPy/Pandas③吴恩达ML课程④PyTorch/TensorFlow⑤Kaggle实战。检验标准：Kaggle Top 50%。','如何做项目':'核心原则：解决真实问题>技术炫技，完整度>复杂度，有文档，有数据(用户量/性能提升)。项目灵感：校园二手平台、课程评价系统、AI学习助手。','腾讯技术栈':'WXG(微信):C++/Node.js、IEG(游戏):C++/Unity、CSIG(云):Go/Java/K8s、CDG:Java/Python/大数据、TEG:Go/C++/Rust。','参加什么比赛':'编程类:ACM/蓝桥杯、AI类:Kaggle/天池、开发类:小程序大赛/黑客松、产品类:校园产品策划大赛。','如何积累GitHub':'从小项目开始，保持提交频率。写清晰的README。参与开源项目（从修文档到提PR）。GitHub是技术人的第二份简历。','如何准备第一份实习简历':'一页PDF，结构：个人信息→教育背景→技术栈→项目经历。每个项目用STAR法则，量化成果。找3个以上的人帮忙Review。'},default:'大二积累关键期！你可以问我：前端/后端/AI学习路线、如何做项目、腾讯技术栈...'},junior:{intro:'大三到了冲刺阶段！',topics:{'暑期实习时间线':'2-3月关注公众号准备简历→3月中网申→3-4月笔试→4-5月面试(2-3轮技术+1轮HR)→5-6月发offer→6-8月实习(表现优秀可转正)。现在就开始准备！','如何准备技术面试':'算法(40%):LeetCode高频100道；项目(30%):脱稿讲5分钟；基础(20%):计网/OS/DB；系统设计(10%):基本架构模式。每天3题+复盘1项目。','简历怎么写':'一页PDF，结构清晰。用STAR法则写项目经历。量化成果。针对不同岗位准备不同版本。避免自我评价空洞、排版花哨。','腾讯面试流程':'4-5轮：R1-2技术面(代码+项目+基础)、R3 Leader面(技术视野+项目深度)、R4 HR面(职业规划+价值观)。每轮后24h内通知结果。','群面怎么脱颖而出':'当"推进者"而非"Leader"。先听后说。用框架组织讨论。适当cue沉默同学。最后帮助总结。技术岗一般无群面。','实习期间如何争取转正':'超出预期最重要。主动性：主动沟通、汇报、提建议。学习力：快速上手。靠谱：守住deadline。定期和导师1v1。','秋招策略':'梯度投递：BAT/TMD+独角兽+保底。用Excel管理进度。每天上午投递+下午刷题+晚上复盘。内推优先。','心态管理':'焦虑正常。写下来变成行动清单。找到"战友"。保持运动和睡眠。专注能控制的事。面试失败不代表你不够好。'},default:'大三冲刺期！你可以问我：暑期实习时间线、如何准备技术面试、简历怎么写...'},senior:{intro:'求职冲刺阶段！',topics:{'秋招策略':'梯度投递30+企业。用Excel记录每家状态。每天上午投递+下午刷题+晚上复盘。内推优先。海投20-30家，聚焦5-8家重点准备。','offer选择':'评估维度：团队和Leader(50%)>业务前景(20%)>薪资(15%)>城市(10%)>公司品牌(5%)。和在职前辈聊聊真实情况。','入职前准备':'技术准备：了解部门技术栈。人脉连接：加同事微信。阅读积累：看团队技术博客。生活安排：租房/通勤/社保。享受最后的校园时光。','心态管理':'焦虑正常。写下来变成行动清单。找到"战友"。保持运动和睡眠。专注能控制的事。','薪资谈判':'了解市场价(牛客Offer Show)。有其他offer可"善意竞争"。关注总包而非月薪。坦诚沟通，不"威胁"HR。','非技术岗求职':'产品经理：产品分析报告+竞品分析+原型设计。运营：数据分析+内容策划+活动方案。市场：营销案例+品牌分析。结合AI工具展示能力。','职场第一课':'主动沟通>被动等待。先理解再执行。记录产出和成果。建立跨团队人脉。持续学习。','长期职业规划':'前3年：积累核心能力。3-5年：成为某个领域的专家。5-10年：建立行业影响力。保持开放心态。'},default:'求职冲刺中！你可以问我：秋招策略、offer选择、入职前准备...'}};
+
+// ============ ROADMAP ============
+const roadmaps={freshman:[{title:'建立行业认知',desc:'通过企业官网、招聘平台了解互联网行业岗位类型和核心能力要求。',tag:'must',tagLabel:'必做',resources:['腾讯招聘官网','牛客网','36氪']},{title:'学习第一门编程语言',desc:'选择Python或前端作为入门语言。每天1小时，3个月可上手。',tag:'must',tagLabel:'必做',resources:['廖雪峰Python教程','MDN Web Docs','freeCodeCamp']},{title:'完成第一个个人项目',desc:'做一个个人主页/天气查询/Todo List并部署到GitHub Pages。',tag:'must',tagLabel:'必做',resources:['GitHub Pages','Vercel','Git教程']},{title:'加入技术或产品社团',desc:'参与校园社团、Hackathon或产品创意大赛，认识志同道合的伙伴。',tag:'recommend',tagLabel:'推荐',resources:['学校社团招新','校园Hackathon']},{title:'建立学习习惯和知识体系',desc:'每天30分钟行业阅读，用Notion建立个人知识库。',tag:'recommend',tagLabel:'推荐',resources:['掘金','知乎-技术板块','阮一峰博客']}],sophomore:[{title:'确定职业方向并制定学习计划',desc:'选定1-2个岗位方向，制定6个月深度学习计划。',tag:'must',tagLabel:'必做',resources:['岗位JD分析','技能树梳理','Roadmap.sh']},{title:'系统学习核心技术栈',desc:'前端学React/Vue+TS，后端学Go/Java+DB。完成2-3个有质量的项目。',tag:'must',tagLabel:'必做',resources:['官方文档','Udemy/Coursera']},{title:'参加技术竞赛或开源贡献',desc:'参加ACM/Kaggle/小程序大赛，或在GitHub参与开源项目。',tag:'recommend',tagLabel:'推荐',resources:['Kaggle','GitHub Good First Issue']},{title:'撰写第一版正式简历',desc:'用STAR法则整理所有项目经历，找学长学姐帮忙Review。',tag:'must',tagLabel:'必做',resources:['STAR法则详解','超级简历WonderCV']},{title:'尝试日常实习',desc:'投递腾讯灯塔计划或中小企业日常实习，积累第一份职场经验。',tag:'recommend',tagLabel:'推荐',resources:['腾讯灯塔计划','实习僧','Boss直聘']}],junior:[{title:'打磨核心技能到面试水平',desc:'算法100道+，项目能脱稿讲5分钟。系统复习八股文。模拟面试。',tag:'must',tagLabel:'必做',resources:['LeetCode热题100','牛客面经','代码随想录']},{title:'密集投递暑期实习',desc:'3-4月集中投递。做好进度追踪表。内推>官网>招聘平台。',tag:'must',tagLabel:'必做',resources:['腾讯招聘公众号','各厂校招官网']},{title:'面试实战与深度复盘',desc:'每轮面试后当天复盘。面试是体力活也是脑力活。',tag:'must',tagLabel:'必做',resources:['面试复盘模板','找前辈Mock']},{title:'暑期实习全力表现',desc:'前2周熟悉业务→主动认领任务→每周和导师1v1→记录所有产出。',tag:'must',tagLabel:'必做',resources:['新人Onboarding Checklist']},{title:'准备秋招Plan B',desc:'即使有转正机会也建议同时准备秋招。多一个选择多一份安全感。',tag:'recommend',tagLabel:'推荐',resources:['提前批投递入口','备选企业清单']}],senior:[{title:'秋招/春招全面投递',desc:'梯度投递30+企业。每周日更新进度。设定"offer目标日期"。',tag:'must',tagLabel:'必做',resources:['校招进度追踪表','Offer Show薪资参考']},{title:'面试深度备战与复盘',desc:'了解面试官背景。面试后写复盘笔记。把每次面试当免费大厂咨询。',tag:'must',tagLabel:'必做',resources:['面试复盘模板','AI模拟面试']},{title:'Offer比较与选择',desc:'从团队/业务/薪资/城市/成长空间评估。找前辈聊聊真实体验。',tag:'must',tagLabel:'必做',resources:['Offer评估表格','脉脉/知乎问询']},{title:'知识体系总结与输出',desc:'把四年的积累整理成体系化内容，写成文章或分享。',tag:'recommend',tagLabel:'推荐',resources:['掘金/思否发文','GitHub整理']},{title:'身份转换与入职准备',desc:'学习职场基本素养、公司工具和流程。定入职第一个月目标。',tag:'recommend',tagLabel:'推荐',resources:['职场新人指南','城市生活攻略']}]};
+
+// ============ KNOWLEDGE BASE (15 entries) ============
+const knowledgeBase=[{id:'k1',icon:'🏢',title:'腾讯业务全景',desc:'社交/游戏/云/AI/金融/内容六大业务线详解',content:'<h4>腾讯六大业务线</h4><p><b>WXG:</b>微信/企业微信/微信支付</p><p><b>IEG:</b>王者荣耀/和平精英/LOL</p><p><b>CSIG:</b>腾讯云/腾讯会议</p><p><b>CDG:</b>广告/金融科技</p><p><b>TEG:</b>基础架构/AI平台/安全</p><p><b>PCG:</b>腾讯视频/QQ/QQ音乐</p>'},{id:'k2',icon:'💻',title:'技术岗位地图',desc:'前端/后端/算法/数据/DevOps五条技术线能力要求',content:'<h4>技术岗位能力阶梯</h4><p><b>L1入门:</b>掌握一门语言</p><p><b>L2合格:</b>独立负责模块开发</p><p><b>L3高级:</b>设计系统架构</p><p><b>L4专家:</b>领域深度专家</p><p><b>L5领军:</b>定义技术方向</p>'},{id:'k3',icon:'🎨',title:'产品/设计岗位解读',desc:'产品经理、交互设计、视觉设计的工作内容和能力模型',content:'<h4>产品与设计岗位</h4><p><b>产品经理:</b>需求分析→PRD→原型→项目推进→数据分析</p><p><b>交互设计:</b>信息架构→交互流程→可用性测试</p><p><b>视觉设计:</b>品牌视觉→界面设计→设计规范</p>'},{id:'k4',icon:'🎓',title:'校招全流程时间线',desc:'提前批→正式批→补录→春招，全年度节奏完整梳理',content:'<h4>校招年度节奏</h4><p><b>2-3月:</b>暑期实习招聘</p><p><b>7-8月:</b>秋招提前批</p><p><b>9-10月:</b>秋招正式批</p><p><b>11-12月:</b>秋招补录</p><p><b>次年3-4月:</b>春招</p>'},{id:'k5',icon:'🤖',title:'AI行业趋势',desc:'大模型/AIGC/AI Agent对就业市场的影响',content:'<h4>AI对就业的影响</h4><p><b>机遇:</b>AI岗位需求激增，"会用AI"成为基础要求</p><p><b>挑战:</b>重复性工作被替代风险高</p><p><b>建议:</b>学会使用AI工具，培养AI无法替代的能力</p>'},{id:'k6',icon:'📝',title:'简历与面试宝典',desc:'STAR法则、常见面试题型、模拟面试策略',content:'<h4>面试全攻略</h4><p><b>简历:</b>一页PDF、STAR法则、量化成果</p><p><b>技术面:</b>算法+项目+基础+系统设计</p><p><b>行为面:</b>准备5-8个故事</p>'},{id:'k7',icon:'🌍',title:'鹅厂文化与培养体系',desc:'导师制、新人培训、晋升通道全面介绍',content:'<h4>腾讯新人培养体系</h4><p><b>导师制:</b>1v1指导</p><p><b>新人培训:</b>公司级+部门级+专项培训</p><p><b>晋升通道:</b>专业序列(P1-P5)+管理序列(M1-M5)</p>'},{id:'k8',icon:'💡',title:'低年级如何提前准备',desc:'大一大二可以做的事：了解行业、学技能、参与实践',content:'<h4>给低年级的建议</h4><p>1.建立信息渠道 2.打好基础 3.积累项目 4.拓展人脉 5.保持好奇心——大一大二最大的优势就是时间</p>'},{id:'k9',icon:'🔧',title:'必备工具与资源',desc:'Git/GitHub/Figma/VSCode等工具的入门指南',content:'<h4>学生必备工具</h4><p><b>开发:</b>VSCode/Git/GitHub/Postman</p><p><b>设计:</b>Figma/Canva/Notion</p><p><b>学习:</b>MDN/LeetCode/Coursera</p><p><b>求职:</b>牛客/Boss直聘/超级简历</p>'},{id:'k10',icon:'🎯',title:'各岗位面试真题',desc:'技术/产品/设计/运营典型面试题目和答题思路',content:'<h4>典型面试题</h4><p><b>技术:</b>LRU缓存/HTTP vs HTTPS/项目难点</p><p><b>产品:</b>估算加油站数量/改进微信朋友圈</p><p><b>通用:</b>最大缺点/为什么选我们/3年规划</p>'},{id:'k11',icon:'📊',title:'数据分析入门指南',desc:'从零开始学数据分析的工具和思维框架',content:'<h4>数据分析学习</h4><p><b>工具:</b>SQL→Python(Pandas)→可视化(Tableau/PowerBI)</p><p><b>思维:</b>指标定义→数据收集→探索分析→假设检验→报告呈现</p>'},{id:'k12',icon:'🚀',title:'创业与创新思维',desc:'互联网创业的基本逻辑和商业模式',content:'<h4>创业基础</h4><p><b>核心问题:</b>解决谁的什么问题？为什么是你？市场多大？怎么赚钱？</p><p><b>推荐书:</b>《从0到1》《精益创业》《跨越鸿沟》</p>'},{id:'k13',icon:'🌐',title:'远程工作与自由职业',desc:'远程办公时代的技能要求和职业机会',content:'<h4>远程工作</h4><p><b>适合岗位:</b>开发/设计/写作/翻译/咨询</p><p><b>核心能力:</b>自驱力/沟通能力/时间管理/工具熟练度</p><p><b>平台:</b>Upwork/RemoteOK/电鸭社区</p>'},{id:'k14',icon:'💰',title:'薪资与财务规划',desc:'互联网行业薪资结构和毕业生理财建议',content:'<h4>薪资与理财</h4><p><b>薪资结构:</b>Base+年终+股票/期权+福利</p><p><b>理财建议:</b>先存3-6月生活费→学习基础理财→分散投资</p>'},{id:'k15',icon:'🧠',title:'学习能力提升',desc:'费曼学习法、间隔重复、知识体系搭建',content:'<h4>高效学习方法</h4><p><b>费曼学习法:</b>把学到的讲给别人听</p><p><b>间隔重复:</b>Anki/RemNote工具</p><p><b>知识体系:</b>用Notion/Obsidian建立个人知识图谱</p>'}];
+
+// ============ GOALS SYSTEM (date-seeded) ============
+function seedRandom(seed){let x=Math.sin(seed)*10000;return x-Math.floor(x)}
+function getDailyGoals(grade){
+  const seed=new Date().getDate()+new Date().getMonth()*31;
+  const sets={freshman:[{id:'d1',title:'浏览1篇行业资讯',detail:'在36氪/虎嗅阅读一篇互联网文章'},{id:'d2',title:'学习编程30分钟',detail:'完成编程课程的一个小节'},{id:'d3',title:'记录一个想法或问题',detail:'在笔记本上记录今天的思考'}],sophomore:[{id:'d1',title:'解决1道算法题',detail:'在LeetCode上完成至少1道题目'},{id:'d2',title:'推进个人项目',detail:'给正在做的项目贡献至少30分钟'},{id:'d3',title:'阅读1篇技术文章',detail:'在掘金/思否阅读高质量技术文章'}],junior:[{id:'d1',title:'解决3道算法题',detail:'保持手感和解题速度'},{id:'d2',title:'投递1个岗位或准备面试',detail:'优化简历或做一次模拟面试'},{id:'d3',title:'复盘一个项目经历',detail:'用STAR法则把1个项目写成面试素材'}],senior:[{id:'d1',title:'投递3-5个岗位',detail:'保持投递节奏'},{id:'d2',title:'准备1个面试问题',detail:'针对目标岗位准备深度问题'},{id:'d3',title:'心理调节10分钟',detail:'冥想/运动/写日记'}]};
+  return sets[grade]||sets.freshman;
+}
+function getWeeklyGoals(grade){
+  const sets={freshman:[{id:'w1',title:'本周完成5小时编程学习',detail:'保持每天至少30分钟'},{id:'w2',title:'了解2个互联网岗位',detail:'各花30分钟研究一个岗位'}],sophomore:[{id:'w1',title:'本周完成10道算法题',detail:'覆盖至少3种题型'},{id:'w2',title:'项目有可演示进展',detail:'完成项目的一个功能模块'}],junior:[{id:'w1',title:'本周投递5个实习岗位',detail:'含腾讯及其他目标企业'},{id:'w2',title:'完成2次模拟面试',detail:'找同学或使用AI模拟面试'}],senior:[{id:'w1',title:'本周投递15个岗位',detail:'覆盖第一和第二梯队'},{id:'w2',title:'完成3次面试复盘',detail:'每次面试后当天完成复盘笔记'}]};
+  return sets[grade]||sets.freshman;
+}
+function getStageGoals(grade){
+  const sets={freshman:[{id:'s1',title:'完成一门编程入门课程',detail:'Python或前端，拿到课程证书'},{id:'s2',title:'了解5个以上互联网岗位',detail:'能说出每个岗位的核心工作内容'},{id:'s3',title:'参与1次技术/产品活动',detail:'线上或线下均可'},{id:'s4',title:'完成第一个个人项目',detail:'部署上线并拥有可访问的链接'},{id:'s5',title:'建立个人学习笔记体系',detail:'用Notion/语雀记录至少20篇笔记'},{id:'s6',title:'阅读3本行业书籍',detail:'含至少1本技术+1本产品+1本商业'}],sophomore:[{id:'s1',title:'完成3个有质量的项目',detail:'GitHub托管，有Star或访问量'},{id:'s2',title:'算法刷题累计50道',detail:'覆盖主要题型'},{id:'s3',title:'建立个人技术博客',detail:'发布至少5篇文章'},{id:'s4',title:'投出第一份实习简历',detail:'完成简历撰写并通过至少3人Review'},{id:'s5',title:'获得1个开源项目PR被合并',detail:'从good first issue开始'},{id:'s6',title:'参加1次技术竞赛',detail:'ACM/小程序大赛/黑客松均可'}],junior:[{id:'s1',title:'算法刷题累计100道',detail:'重点题型都能熟练解答'},{id:'s2',title:'收获暑期实习offer',detail:'全力以赴争取转正'},{id:'s3',title:'完成5次以上面试',detail:'每次面试后都有复盘笔记'},{id:'s4',title:'建立完整的求职知识体系',detail:'整理面试笔记和知识图谱'},{id:'s5',title:'GitHub年度贡献200+次',detail:'保持活跃的技术输出'},{id:'s6',title:'发布10篇技术/产品文章',detail:'建立个人品牌'}],senior:[{id:'s1',title:'投递30+目标岗位',detail:'做好完整的投递和进度记录'},{id:'s2',title:'完成10次面试复盘',detail:'归纳高频题和自己的答题模板'},{id:'s3',title:'拿到2个以上offer',detail:'有选择的余地'},{id:'s4',title:'完成大学成长总结',detail:'输出一份成长记录'},{id:'s5',title:'帮助至少1位学弟学妹',detail:'分享经验和资源'},{id:'s6',title:'制定入职后3个月计划',detail:'明确入职后要完成的关键目标'}]};
+  return sets[grade]||sets.freshman;
 }
 
-// ==================== GRADE SYSTEM ====================
-const gradeInfo = {
-  freshman: { name:'大一·探索期', icon:'🌱', color:'var(--freshman)', emoji:'🌱', slogan:'探索无限可能' },
-  sophomore: { name:'大二·成长期', icon:'🌿', color:'var(--sophomore)', emoji:'🌿', slogan:'扎根积累力量' },
-  junior: { name:'大三·实习期', icon:'🌳', color:'var(--junior)', emoji:'🌳', slogan:'蓄力冲刺舞台' },
-  senior: { name:'大四/研·求职期', icon:'🍊', color:'var(--senior)', emoji:'🍊', slogan:'收获理想offer' },
-};
+// ============ CORE FUNCTIONS ============
+function startJourney(grade){
+  userGrade=grade;initAllGoals();
+  document.getElementById('onboarding').style.display='none';document.getElementById('dashboard').classList.add('show');
+  document.getElementById('gradeSwitcherBtn').style.display='';document.getElementById('gradeSwitcherLabel').textContent=gradeInfo[grade].icon+' '+gradeInfo[grade].name;
+  renderDaily();initChat();renderRoadmap();renderKnowledge();renderGoals();renderCalendar();switchTab('chat');
+}
+function initAllGoals(){allGoals={};goalSetCache={};const all=[...getDailyGoals(userGrade),...getWeeklyGoals(userGrade),...getStageGoals(userGrade)];all.forEach(g=>{if(!(g.id in allGoals))allGoals[g.id]=false;goalSetCache[g.id]=g})}
+function switchGrade(grade){if(userGrade===grade){closeGradeSwitcher();return}userGrade=grade;initAllGoals();document.getElementById('gradeSwitcherLabel').textContent=gradeInfo[grade].icon+' '+gradeInfo[grade].name;closeGradeSwitcher();renderDaily();initChat();renderRoadmap();renderKnowledge();renderGoals();renderCalendar();switchTab('chat');showToast('🔄 已切换到 '+gradeInfo[grade].name,'success');launchMiniConfetti()}
+function openGradeSwitcher(){document.getElementById('gradeModal').classList.add('show')}
+function closeGradeSwitcher(){document.getElementById('gradeModal').classList.remove('show')}
 
-function getGradeCards(target) {
-  return Object.entries(gradeInfo).map(([key, g]) => `
-    <div class="grade-card ${key}" onclick="${target === 'onboarding' ? `startJourney('${key}')` : `switchGrade('${key}')`}">
-      <div class="grade-icon">${g.icon}</div>
-      <div class="grade-name">${g.name}</div>
-      <div class="grade-desc">${g.slogan}</div>
-    </div>
-  `).join('');
+// ============ CHAT ============
+function initChat(){
+  const msgs=document.getElementById('chatMessages'),quick=document.getElementById('chatQuick');
+  const info=gradeInfo[userGrade],knowledge=aiKnowledge[userGrade];
+  const topics=Object.keys(knowledge.topics);
+  // Show cached topics or first batch
+  if(!window._topicBatch||window._topicBatch.grade!==userGrade){window._topicBatch={grade:userGrade,batch:0,topics:topics.sort(()=>0.5-Math.random())}}
+  const batch=window._topicBatch.topics.slice(0,4);
+  if(chatHistory.length===0){msgs.innerHTML=`<div class="chat-msg ai">👋 嗨！我是未来鹅，你的专属职业成长伙伴～<br>看到你是 <strong>${info.icon} ${info.name}</strong>，我会给你最贴心的陪伴和建议！<br>你可以直接问我任何问题 ✨<div class="msg-time">刚刚</div></div>`}else{msgs.innerHTML=chatHistory.map(m=>`<div class="chat-msg ${m.role}">${m.text}<div class="msg-time">${m.time}</div></div>`).join('')}
+  quick.innerHTML=batch.map(t=>`<button class="chat-quick-btn" onclick="quickAsk('${t}')">${t}</button>`).join('');
+  // Update datalist
+  document.getElementById('topicSuggest').innerHTML=topics.map(t=>`<option value="${t}">`).join('');
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function refreshTopics(){window._topicBatch.batch++;initChat();launchMiniConfetti();showToast('🔀 已刷新推荐问题','success')}
+function quickAsk(q){document.getElementById('chatInput').value=q;sendMessage()}
+function sendMessage(){
+  const input=document.getElementById('chatInput');const msg=input.value.trim();if(!msg)return;
+  const msgs=document.getElementById('chatMessages');
+  const time=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  msgs.innerHTML+=`<div class="chat-msg user">${msg}<div class="msg-time">${time}</div></div>`;
+  chatHistory.push({role:'user',text:msg,time});if(chatHistory.length>40)chatHistory.shift();
+  const typingId='typing_'+Date.now();msgs.innerHTML+=`<div class="typing" id="${typingId}"><span></span><span></span><span></span></div>`;msgs.scrollTop=msgs.scrollHeight;input.value='';
+  const delay=600+Math.random()*1200;
+  setTimeout(()=>{const typing=document.getElementById(typingId);if(typing)typing.remove();
+    const reply=getAIResponse(msg);msgs.innerHTML+=`<div class="chat-msg ai">${reply}<div class="msg-time">${time}</div></div>`;
+    chatHistory.push({role:'ai',text:reply,time});if(chatHistory.length>40)chatHistory.shift();
+    state.chatHistory=chatHistory;sv(state);msgs.scrollTop=msgs.scrollHeight;
+  },delay);
+}
+function getAIResponse(msg){const knowledge=aiKnowledge[userGrade];const m=msg.toLowerCase();for(const[topic,response]of Object.entries(knowledge.topics)){const tk=topic.split('').filter(c=>c.charCodeAt(0)>127).join('');if(tk.length>2&&m.includes(tk.substring(0,3)))return response;if(topic.length>3&&m.includes(topic.substring(0,4)))return response}const topics=Object.keys(knowledge.topics);const suggestions=topics.slice(0,4).map(t=>`「${t}」`).join('、');return knowledge.default+'\n\n💡 你可以试试问我：'+suggestions}
+function clearChat(){chatHistory=[];state.chatHistory=chatHistory;sv(state);initChat();showToast('💬 对话已清空','success')}
+
+// ============ ROADMAP ============
+function renderRoadmap(){
+  const items=roadmaps[userGrade]||roadmaps.freshman;
+  const doneCount=Object.values(allGoals).filter(v=>v).length;
+  document.getElementById('timeline').innerHTML=items.map((item,i)=>{
+    let dotCls='upcoming';if(i===0)dotCls='current';if(doneCount>=(i+1)*3)dotCls='unlocked';else if(doneCount>=(i+1)*2)dotCls='done';
+    return`<div class="timeline-item" style="animation:fadeInUp ${0.3+i*0.15}s ease both"><div class="timeline-dot ${dotCls}"></div><div class="timeline-content"><h4>${i+1}. ${item.title} <span class="tl-tag ${item.tag==='must'?'must':'recommend'}">${item.tagLabel}</span></h4><p>${item.desc}</p><div class="tl-resources">📎 ${item.resources.map(r=>`<span>${r}</span>`).join(' ')}</div></div></div>`
+  }).join('');
 }
 
-document.getElementById('onboardingCards').innerHTML = getGradeCards('onboarding');
-document.getElementById('gradeModalGrid').innerHTML = getGradeCards('modal');
-
-// ==================== DAILY INSPIRATION ====================
-const dailyInspirations = [
-  { icon:'🌟', quote:'每一步都算数，未来不会辜负每一个认真准备的人', tip:'今天花30分钟了解一个你感兴趣的岗位吧' },
-  { icon:'💪', quote:'成长不是一蹴而就的冲刺，而是日复一日的坚持', tip:'尝试写下你今天的三个小收获' },
-  { icon:'🎯', quote:'方向比速度更重要，先找到你真正热爱的领域', tip:'去招聘网站浏览10个岗位JD，感受行业需求' },
-  { icon:'🌈', quote:'每一次尝试都是未来的伏笔，不要怕试错', tip:'联系一位学长学姐，听听他们的求职故事' },
-  { icon:'🔥', quote:'你今天学到的每一个技能，都是明天谈薪的筹码', tip:'搭建你的GitHub个人主页，开始记录成长' },
-  { icon:'🚀', quote:'没有人一开始就很厉害，但每个人都可以开始', tip:'每天写一段代码/读一篇产品分析，坚持21天' },
-  { icon:'💡', quote:'机会永远留给有准备的人，而准备从今天开始', tip:'整理一份你感兴趣的企业的校招时间表' },
-  { icon:'🎨', quote:'你的独特性就是你的竞争力，不要活成别人的模板', tip:'思考一下你和其他同学的最大区别是什么' },
-];
-
-function renderDaily() {
-  const d = dailyInspirations[new Date().getDate() % dailyInspirations.length];
-  document.getElementById('dailyCard').innerHTML = `
-    <div class="daily-icon">${d.icon}</div>
-    <div class="daily-quote">"${d.quote}"</div>
-    <div class="daily-tip">💡 ${d.tip}</div>
-    <div style="margin-top:10px;font-size:11px;color:var(--text-light);">📅 ${todayStr} · 每日更新 <span class="refresh-icon" onclick="renderDaily();launchMiniConfetti()">🔄</span></div>
-  `;
-}
-
-function launchMiniConfetti() {
-  const container = document.getElementById('confetti');
-  const colors = ['#fbbf24','#f97316','#10b981'];
-  for (let i = 0; i < 20; i++) {
-    setTimeout(() => {
-      const piece = document.createElement('div');
-      piece.className = 'confetti-piece';
-      piece.style.cssText = `left:${40+Math.random()*20}%;top:-20px;width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${1.5+Math.random()*2}s;`;
-      container.appendChild(piece);
-      setTimeout(() => piece.remove(), 3500);
-    }, i * 20);
-  }
-}
-
-// ==================== AI KNOWLEDGE BASE (significantly expanded) ====================
-const aiKnowledge = {
-  freshman: {
-    intro: '大一正是探索的黄金期！不用急着确定方向，但可以开始广泛了解。给你一些具体的建议：',
-    topics: {
-      '了解互联网行业': '互联网行业主要有六大方向：①技术研发（前端/后端/算法/数据/DevOps）②产品经理（用户产品/策略产品/商业产品）③设计（UI/UX/交互/视觉）④运营（用户运营/内容运营/活动运营）⑤市场与销售⑥职能（HR/财务/法务）。大一时可以每个方向都了解一下，找到你感兴趣的那个～\n\n📚 推荐资源：关注「腾讯招聘」「字节跳动招聘」公众号、浏览牛客网、看《产品经理入门》系列文章。',
-      '学什么编程语言': '大一推荐从 Python 或前端三件套（HTML/CSS/JavaScript）入手：\n\n🐍 Python：语法简洁，适合入门，应用广泛（AI、数据分析、自动化）。推荐廖雪峰Python教程。\n\n🌐 前端：所见即所得，改代码立刻看到效果，成就感强。推荐MDN Web Docs和freeCodeCamp。\n\n💡 建议：先选定一门，学3个月后再考虑扩展。不要同时学太多！',
-      '腾讯是怎样的公司': '腾讯是中国最大的互联网公司之一，主要业务包括：\n\n💬 社交：微信、QQ（月活超13亿）\n🎮 游戏：王者荣耀、和平精英、英雄联盟等\n☁️ 云与产业：腾讯云、企业微信、腾讯会议\n🤖 AI：混元大模型、AI Lab\n💳 金融科技：微信支付、理财通\n📺 内容平台：腾讯视频、QQ音乐、阅文集团\n\n企业文化关键词：用户为本、科技向善、开放协作、长期主义。是一家技术驱动+产品驱动的公司。',
-      '参加什么社团活动': '大一推荐参加的几类活动：\n\n🏆 技术类：ACM校队、实验室课题组、开源社区（如TUNA）\n🎨 产品类：产品经理协会、校园创业大赛\n💻 实践类：Hackathon黑客松、小程序开发大赛\n📢 综合类：学生会/社联（锻炼沟通组织能力）\n\n关键不是参加了多少，而是在其中扮演了什么角色、做出了什么成果。',
-      '如何规划大学四年': '大一：探索（广泛涉猎，找到兴趣）\n大二：聚焦（选定方向，深入积累）\n大三：实践（实习试水，验证方向）\n大四：冲刺（求职/深造，收获offer）\n\n📌 每学期设定2-3个具体目标，每学期末复盘一次。不要和别人比较进度，每个人都有自己的节奏。',
-      '什么是STAR法则': 'STAR法则是写简历和面试的黄金框架：\n\nS (Situation): 背景是什么？\nT (Task): 你的任务是什么？\nA (Action): 你做了什么？\nR (Result): 取得了什么成果？（最好有数据）\n\n🌟 示例：\"在XX项目中(S)，我负责优化页面性能(T)，通过代码分割和懒加载(A)，页面加载时间降低了40%(R)。\"\n\n从大一开始就可以用STAR思维来记录你做的每一件事。',
-      '互联网行业前景': '2025-2026年互联网行业几个关键趋势：\n\n🤖 AI大模型全面落地应用\n🌍 出海成为第二增长曲线\n🏭 产业互联网深入制造业\n🔒 数据安全与隐私合规岗位需求激增\n🎮 游戏行业出海+AI化\n\n给新人的建议：关注AI+垂直行业的交叉机会，纯粹的执行岗位需求在下降，"AI工具使用能力"正在成为基础要求。',
-    },
-    default: '大一正是探索的黄金期！你可以问我：了解互联网行业、学什么编程语言、腾讯是怎样的公司、参加什么社团活动、如何规划大学四年、什么是STAR法则、互联网行业前景……',
-  },
-  sophomore: {
-    intro: '大二是积累的关键期！建议你选定1-2个方向深入发展。以下是一些深度内容：',
-    topics: {
-      '前端学习路线': '大二前端学习路径：\n\n📌 第一阶段（1-2月）：HTML/CSS/JavaScript基础扎实，能独立写静态页面\n📌 第二阶段（2-3月）：学React或Vue框架，了解组件化思想\n📌 第三阶段（1-2月）：TypeScript + 工程化（Webpack/Vite）\n📌 第四阶段（持续）：Node.js基础 + 数据库 + 部署\n\n🎯 检验标准：能独立完成一个全栈项目（如个人博客、Todo应用）。',
-      '后端学习路线': '大二后端学习路径：\n\n📌 语言选择：Go（腾讯主流）或 Java（通用性强）\n📌 基础：数据结构与算法、计算机网络、操作系统\n📌 框架：Go→Gin；Java→Spring Boot\n📌 数据库：MySQL + Redis + MongoDB\n📌 进阶：消息队列(Kafka)、容器化(Docker/K8s)、微服务\n\n🎯 检验标准：能搭建一个完整的API服务，支持用户认证和CRUD。',
-      'AI/ML学习路线': '大二AI方向学习路径：\n\n📌 数学基础：线性代数、概率论、微积分\n📌 编程：Python + NumPy + Pandas\n📌 机器学习：吴恩达Coursera课程，掌握回归/分类/聚类\n📌 深度学习：PyTorch/TensorFlow，CNN/RNN/Transformer\n📌 实战：Kaggle比赛 + 论文复现\n\n🎯 检验标准：能在Kaggle上达到Top 50%。',
-      '如何做项目': '大二做项目的核心原则：\n\n1️⃣ 解决真实问题 > 技术炫技\n2️⃣ 完整度 > 复杂度（有前端+后端+数据库+部署）\n3️⃣ 有文档（README写清楚：为什么做、怎么做、效果如何）\n4️⃣ 有数据（用户量、性能提升、效率改善）\n\n💡 项目灵感：校园二手交易平台、课程评价系统、AI学习助手、数据分析看板。',
-      '腾讯技术栈': '腾讯各BG常用技术栈：\n\n💬 WXG(微信)：C++、Node.js、微信小程序框架\n🎮 IEG(游戏)：C++、Unity、Unreal Engine\n☁️ CSIG(云)：Go、Java、Kubernetes、Docker\n📊 CDG(企业发展)：Java、Python、大数据(Hadoop/Spark)\n🤖 TEG(技术工程)：Go、C++、Rust\n\n💡 建议：选定一个方向后，了解该方向的主流技术栈并深入学习。',
-      '参加什么比赛': '大二值得参加的比赛：\n\n🏆 编程类：ACM-ICPC、蓝桥杯\n🤖 AI类：Kaggle、天池大赛、腾讯广告算法大赛\n💻 开发类：微信小程序大赛、黑客松\n📊 产品类：校园产品策划大赛、商业案例分析大赛\n\n不仅是为了获奖，更重要的是项目经历可以写在简历上！',
-    },
-    default: '大二是积累关键期！你可以问我：前端/后端/AI学习路线、如何做项目、腾讯技术栈、参加什么比赛、如何准备第一份实习简历……',
-  },
-  junior: {
-    intro: '大三到了冲刺阶段！以下是针对实习和求职的深度内容：',
-    topics: {
-      '暑期实习时间线': '📅 腾讯暑期实习关键节点：\n\n2-3月：关注「腾讯招聘」公众号，提前准备好简历\n3月中旬：网申开放，尽快投递（先投先筛！）\n3-4月：笔试（技术岗一般有在线编程笔试）\n4-5月：面试（通常2-3轮技术面+1轮HR面）\n5-6月：发放offer\n6-8月：暑期实习（表现优秀可转正）\n\n💡 建议：现在就开始准备，不要等到3月才匆忙投递！',
-      '如何准备技术面试': '技术面试核心准备：\n\n📌 算法（40%）：LeetCode高频题至少100道，覆盖数组/链表/树/DP/回溯\n📌 项目（30%）：能脱稿讲每个项目5分钟，用STAR法则组织\n📌 基础（20%）：操作系统、网络、数据库原理\n📌 系统设计（10%）：了解基本的设计模式和系统架构\n\n🎯 每天刷3道题+复盘1个项目，坚持2个月效果显著。',
-      '简历怎么写': '校招简历核心要点：\n\n✅ 一页A4纸，PDF格式\n✅ 结构：个人信息→教育背景→技术栈→项目经历→实习经历→获奖\n✅ 项目用STAR法则写，每个项目3-4个Bullet Point\n✅ 量化成果：\"性能提升30%\" > \"性能有较大提升\"\n✅ 针对不同岗位准备不同版本简历\n\n❌ 避免：自我评价空洞、排版花哨、罗列所有课程。',
-      '腾讯面试流程': '腾讯校招面试通常4-5轮：\n\nRound 1-2：技术面（代码能力+项目深挖+基础考察）\nRound 3：Leader面（技术视野+项目深度+团队协作）\nRound 4：HR面（职业规划+价值观+沟通能力）\n\n💡 每轮面试后24小时内会收到结果通知。如果某轮挂了，可以尝试转岗。',
-      '群面怎么脱颖而出': '群面（无领导小组讨论）技巧：\n\n1️⃣ 不一定当\"Leader\"，当\"推进者\"更安全\n2️⃣ 先听后说，不要抢话，但要有观点\n3️⃣ 用框架组织讨论：\"我们可以从XX、YY、ZZ三个维度来看\"\n4️⃣ 适当cue沉默的同学\n5️⃣ 最后帮助总结\n\n💡 腾讯技术岗一般没有群面，产品/运营/市场岗可能有。',
-      '实习期间如何争取转正': '转正关键因素：\n\n🌟 超出预期（最重要）：不要只完成分配的任务，多想一步\n🌟 主动性：主动沟通、主动汇报、主动提建议\n🌟 学习力：快速上手业务，展现成长速度\n🌟 靠谱：承诺的deadline必须守住\n🌟 复盘：定期和导师1v1，了解自己的不足\n\n💡 转正答辩准备：整理实习期间的所有产出，量化成果。',
-    },
-    default: '大三冲刺期！你可以问我：暑期实习时间线、如何准备技术面试、简历怎么写、腾讯面试流程、群面技巧、转正攻略……',
-  },
-  senior: {
-    intro: '求职冲刺阶段，你已经准备了很久，相信自己！以下是实战干货：',
-    topics: {
-      '秋招策略': '秋招投递策略：\n\n🎯 梯度投递：第一梯队（BAT/TMD）+ 第二梯队（独角兽）+ 保底\n📊 进度管理：用Excel记录每家投递时间/状态/反馈\n⏰ 时间管理：每天上午投递+下午刷题+晚上复盘\n🤝 内推优先：找一个在职同事/学长内推，简历直达HR\n\n💡 建议：海投20-30家，进入面试后聚焦5-8家重点准备。',
-      'offer选择': 'offer评估维度（按权重排序）：\n\n1️⃣ 团队和直属Leader（50%）：决定你的成长速度和幸福感\n2️⃣ 业务前景（20%）：这个业务在上升还是下降？\n3️⃣ 薪资（15%）：base + 年终 + 股票，算总包\n4️⃣ 城市（10%）：生活成本和长期规划\n5️⃣ 公司品牌（5%）：大厂光环确实有，但不要迷信\n\n💡 建议和在该公司工作的学长学姐聊聊，了解真实情况。',
-      '入职前准备': '拿到offer到入职，可以做什么：\n\n📚 技术准备：了解部门的技术栈，提前学习\n🤝 人脉连接：加部门同事微信，了解业务\n📖 阅读积累：看团队的技术博客和分享文档\n🏠 生活安排：租房、通勤、社保等\n💪 心态调整：从学生到职场人的身份转变\n\n入职前不用太焦虑，好好享受最后的校园时光！',
-      '心态管理': '求职季心态管理：\n\n🧘 焦虑是正常的，每个人都在焦虑\n📝 把焦虑写下来，变成行动清单\n👥 找到\"战友\"，互相鼓励\n🏃 保持运动和睡眠，身体是革命的本钱\n🎯 专注自己能控制的事：准备、投递、复盘\n\n💡 面试失败不代表你不够好，只是还没找到匹配的坑。每一次面试都是升级的经验值。',
-      '薪资谈判': '应届生薪资谈判要点：\n\n1️⃣ 了解市场价：牛客网offer show、脉脉\n2️⃣ 有其他offer可以\"善意竞争\"\n3️⃣ 关注总包而非月薪\n4️⃣ 不要只盯着薪资，成长空间更重要\n5️⃣ 坦诚沟通，不要\"威胁\"HR\n\n💡 对于校招生，薪资弹性有限，但可以争取签字费和搬家补贴。',
-      '非技术岗求职': '产品/运营/市场岗准备：\n\n📌 产品经理：产品分析报告 + 竞品分析 + 原型设计能力\n📌 运营：数据分析能力 + 内容策划 + 活动方案\n📌 市场：营销案例 + 品牌分析 + 传播方案\n\n💡 结合AI工具（如用AI辅助做竞品分析），展示你是\"会用AI的人\"。',
-    },
-    default: '求职冲刺中！你可以问我：秋招策略、offer选择、入职前准备、心态管理、薪资谈判、非技术岗求职……',
-  },
-};
-
-// ==================== ROADMAP (enhanced) ====================
-const roadmaps = {
-  freshman: [
-    { title:'建立行业认知', desc:'通过企业官网、招聘平台、行业报告，了解互联网行业有哪些岗位类型，每种岗位的核心能力要求是什么。', tag:'must', tagLabel:'必做', resources:['腾讯招聘官网','牛客网','36氪','《人人都是产品经理》'] },
-    { title:'学习第一门编程语言', desc:'选择Python或前端(HTML/CSS/JS)作为入门语言。Python适合AI/数据方向，前端适合产品/设计方向。每天投入1小时，3个月可以上手。', tag:'must', tagLabel:'必做', resources:['廖雪峰Python教程','MDN Web Docs','freeCodeCamp','B站黑马程序员'] },
-    { title:'完成第一个个人项目', desc:'用学到的技能做一个小作品：个人主页/天气查询/待办事项/Todo List/数据分析报告。部署到GitHub Pages或Vercel，拥有第一个在线作品。', tag:'must', tagLabel:'必做', resources:['GitHub Pages','Vercel','Git教程-廖雪峰'] },
-    { title:'加入技术或产品社团', desc:'参与校园技术社团、Hackathon或产品创意大赛。认识志同道合的伙伴，团队协作的经验在面试中非常加分。', tag:'recommend', tagLabel:'推荐', resources:['学校社团招新','腾讯高校驿站','校园Hackathon活动'] },
-    { title:'建立学习习惯和知识体系', desc:'每天30分钟行业阅读，关注3-5个优质技术博客或B站UP主。用Notion/语雀建立个人知识库，记录学习笔记和思考。', tag:'recommend', tagLabel:'推荐', resources:['掘金','知乎-技术板块','GitHub Trending','阮一峰博客'] },
-  ],
-  sophomore: [
-    { title:'确定职业方向并制定学习计划', desc:'通过大一的探索，选定1-2个岗位方向（如前端工程师/产品经理），制定为期6个月的深度学习计划，拆解到每周的具体任务。', tag:'must', tagLabel:'必做', resources:['岗位JD分析','技能树梳理','Roadmap.sh'] },
-    { title:'系统学习核心技术栈', desc:'选定方向后深度学习：前端学React/Vue+TS，后端学Go/Java+DB，AI学Python+PyTorch。完成2-3个有质量的实战项目，代码托管在GitHub。', tag:'must', tagLabel:'必做', resources:['官方文档','Udemy/Coursera','实战项目合集'] },
-    { title:'参加技术竞赛或开源贡献', desc:'参加ACM、Kaggle、小程序大赛等，或在GitHub上参与开源项目（从修文档到提PR）。竞赛经历是简历的亮点，开源贡献能体现协作能力。', tag:'recommend', tagLabel:'推荐', resources:['Kaggle','天池大赛','GitHub Good First Issue'] },
-    { title:'撰写第一版正式简历', desc:'用STAR法则整理所有项目经历，撰写一版正式简历。找学长学姐或学校的就业指导中心帮忙Review，反复打磨。', tag:'must', tagLabel:'必做', resources:['STAR法则详解','简历模板','超级简历WonderCV'] },
-    { title:'尝试日常实习或体验项目', desc:'投递腾讯「灯塔计划」或中小企业的日常实习，积累第一份职场经验。实习经历会让大三找暑期实习时竞争力翻倍。', tag:'recommend', tagLabel:'推荐', resources:['腾讯灯塔计划','实习僧','Boss直聘','牛客实习板块'] },
-  ],
-  junior: [
-    { title:'打磨核心技能到面试水平', desc:'算法刷题100道以上，项目经历能脱稿讲5分钟。系统复习计网/OS/DB八股文。找同伴进行模拟面试，互相出题和反馈。', tag:'must', tagLabel:'必做', resources:['LeetCode热题100','牛客面经','代码随想录','八股文整理'] },
-    { title:'密集投递暑期实习', desc:'3-4月集中投递腾讯等目标企业。做好投递进度追踪表（企业/岗位/时间/状态/备注），每条渠道跟进到位。内推>官网投递>招聘平台。', tag:'must', tagLabel:'必做', resources:['腾讯招聘公众号','各厂校招官网','内推码收集'] },
-    { title:'面试实战与深度复盘', desc:'每轮面试后当天复盘，记录：被问了什么/卡在哪里/哪里答得好/下次怎么改进。面试是体力活也是脑力活，持续复盘才能持续进步。', tag:'must', tagLabel:'必做', resources:['面试复盘模板','录音/笔记复盘','找前辈Mock'] },
-    { title:'暑期实习全力表现', desc:'实习期间：①前2周快速熟悉业务和代码库 ②主动认领任务而非等待分配 ③每周和导师1v1 alignment ④记录所有产出和成果 ⑤建立跨团队人脉。', tag:'must', tagLabel:'必做', resources:['新人Onboarding Checklist','公司内部文档','跨团队沟通技巧'] },
-    { title:'准备秋招Plan B', desc:'即使暑期实习有转正机会，也建议同时准备秋招。7-8月提前批开始投递，多一个选择多一份安全感。不要把鸡蛋放在一个篮子里。', tag:'recommend', tagLabel:'推荐', resources:['提前批投递入口','备选企业清单','时间管理工具'] },
-  ],
-  senior: [
-    { title:'秋招/春招全面投递', desc:'梯度投递30+企业（第一梯队+第二梯队+保底）。做好进度管理Excel，每周日更新状态。给自己设定一个\"offer目标日期\"，保持紧迫感。', tag:'must', tagLabel:'必做', resources:['校招进度追踪表','各厂投递入口','Offer Show薪资参考'] },
-    { title:'面试深度备战与复盘', desc:'每次面试前了解面试官背景、部门业务，准备针对性问题。面试后认真写复盘笔记。把每次面试当成免费的大厂1v1咨询。', tag:'must', tagLabel:'必做', resources:['面试复盘模板','脉脉/牛客查部门','AI模拟面试'] },
-    { title:'Offer比较与选择', desc:'拿到多个offer后，从团队/业务/薪资/城市/成长空间五个维度评估。找在该公司工作的前辈聊聊真实体验。给自己设定决策Deadline避免纠结。', tag:'must', tagLabel:'必做', resources:['Offer评估表格','脉脉/知乎问询','薪资谈判技巧'] },
-    { title:'知识体系总结与输出', desc:'把大学四年的学习和面试积累整理成体系化的内容，写成文章或分享。既是对自己的总结，也能帮助学弟学妹。输出也是最好的学习方式。', tag:'recommend', tagLabel:'推荐', resources:['掘金/思否发文','知乎专栏','GitHub整理'] },
-    { title:'身份转换与入职准备', desc:'从学生到职场人的身份转换：了解职场基本素养、学习公司内部工具和流程、安排好生活（租房/通勤）、给自己定一个入职后的第一个月目标。', tag:'recommend', tagLabel:'推荐', resources:['职场新人指南','公司入职手册','城市生活攻略'] },
-  ],
-};
-
-// ==================== KNOWLEDGE BASE (enhanced) ====================
-const knowledgeBase = [
-  { id:'k1', icon:'🏢', title:'腾讯业务全景', desc:'社交/游戏/云/AI/金融/内容六大业务线详解，了解各部门的核心产品和战略方向', content:'<h4>腾讯六大业务线</h4><p><b>WXG(微信事业群)：</b>微信、企业微信、微信支付，月活13亿+</p><p><b>IEG(互动娱乐)：</b>王者荣耀、和平精英、LOL，全球最大游戏公司</p><p><b>CSIG(云与智慧产业)：</b>腾讯云、腾讯会议、企点，B端业务核心</p><p><b>CDG(企业发展)：</b>广告、金融科技(微信支付/理财通)</p><p><b>TEG(技术工程)：</b>基础架构、AI平台、安全，技术中台</p><p><b>PCG(平台与内容)：</b>腾讯视频、QQ、QQ音乐、腾讯新闻</p>' },
-  { id:'k2', icon:'💻', title:'技术岗位地图', desc:'前端/后端/算法/数据/DevOps五条技术线，每条线的L1-L5能力要求全拆解', content:'<h4>技术岗位能力阶梯</h4><p><b>L1 入门：</b>掌握一门语言，能独立完成简单功能</p><p><b>L2 合格：</b>独立负责模块开发，熟悉常用框架和工具链</p><p><b>L3 高级：</b>能设计系统架构，带领小团队，对业务有理解</p><p><b>L4 专家：</b>某一领域深度专家，能推动技术变革</p><p><b>L5 领军：</b>行业影响力，定义技术方向</p>' },
-  { id:'k3', icon:'🎨', title:'产品/设计岗位解读', desc:'产品经理、交互设计、视觉设计等非技术岗位的工作内容和能力模型', content:'<h4>产品与设计岗位</h4><p><b>产品经理：</b>需求分析→PRD撰写→原型设计→项目推进→数据分析→迭代优化。核心能力：逻辑思维、用户洞察、沟通协调。</p><p><b>交互设计师：</b>信息架构→交互流程→可用性测试。核心能力：用户研究、原型设计、设计思维。</p><p><b>视觉设计师：</b>品牌视觉→界面设计→设计规范→动效设计。核心能力：审美、工具(Figma/Sketch)、设计系统。</p>' },
-  { id:'k4', icon:'🎓', title:'校招全流程时间线', desc:'提前批→正式批→补录→春招，全年度校招节奏完整梳理', content:'<h4>校招年度节奏</h4><p><b>2-3月：</b>暑期实习招聘启动，大三重点关注</p><p><b>7-8月：</b>秋招提前批开启，技术岗优先</p><p><b>9-10月：</b>秋招正式批，所有岗位开放</p><p><b>11-12月：</b>秋招补录，未招满的岗位继续收简历</p><p><b>次年3-4月：</b>春招开启，岗位较少但仍有好机会</p>' },
-  { id:'k5', icon:'🤖', title:'AI行业趋势', desc:'大模型、AIGC、AI Agent等前沿技术如何影响就业市场和学生求职', content:'<h4>AI对就业市场的影响</h4><p><b>机遇：</b>AI相关岗位需求激增，Prompt Engineer、AI产品经理等新岗位出现。"会用AI"正在成为所有岗位的基础能力要求。</p><p><b>挑战：</b>基础编码、简单设计、初级文案等重复性工作被AI替代风险较高。</p><p><b>建议：</b>不管什么专业，都要学会使用AI工具。培养AI无法替代的能力：深度思考、跨领域整合、情感沟通、创造性解决问题。</p>' },
-  { id:'k6', icon:'📝', title:'简历与面试宝典', desc:'STAR法则写简历、常见面试题型、模拟面试、群面角色策略', content:'<h4>面试全攻略</h4><p><b>简历：</b>一页PDF、STAR法则、量化成果、针对岗位定制化修改。</p><p><b>技术面：</b>算法(LeetCode)+项目深挖+基础(计网/OS/DB)+系统设计。</p><p><b>行为面：</b>准备5-8个故事(最自豪/最挑战/协作/领导/失败)，每个2分钟。</p><p><b>HR面：</b>职业规划、为什么选择我们、期望薪资、优缺点。要真诚但也要有策略。</p>' },
-  { id:'k7', icon:'🌍', title:'鹅厂文化与培养体系', desc:'导师制、新人培训、技术分享、轮岗机会、晋升通道全面介绍', content:'<h4>腾讯新人培养体系</h4><p><b>导师制：</b>每位新人配备一名导师，1v1指导，通常是同团队的资深员工。</p><p><b>新人培训：</b>公司级入职培训+部门业务培训+技术/产品专项培训。</p><p><b>技术分享：</b>每周/每两周的团队技术分享会，是快速学习和展示自己的好机会。</p><p><b>晋升通道：</b>专业序列(P1-P5)+管理序列(M1-M5)双通道，晋升周期通常1-2年。</p>' },
-  { id:'k8', icon:'💡', title:'低年级如何提前准备', desc:'大一大二学生可以做什么：了解行业、学习技能、参与实践、建立人脉', content:'<h4>给低年级同学的实用建议</h4><p>1. <b>建立信息渠道：</b>关注企业招聘公众号、加入校招群、关注行业媒体。</p><p>2. <b>打好基础：</b>学好专业课+掌握一门编程语言+培养英语阅读能力。</p><p>3. <b>积累项目：</b>课程设计认真做、参加比赛、做Side Project、参与开源。</p><p>4. <b>拓展人脉：</b>参加技术分享活动、LinkedIn建立profile、找学长学姐聊聊。</p><p>5. <b>保持好奇心：</b>大一大二最大的优势就是时间，多尝试、多体验。</p>' },
-  { id:'k9', icon:'🔧', title:'必备工具与资源', desc:'Git/GitHub/Figma/VSCode等工具的入门指南和学习资源推荐', content:'<h4>学生必备工具清单</h4><p><b>开发工具：</b>VSCode(编辑器)、Git(版本控制)、GitHub(代码托管)、Postman(API测试)</p><p><b>设计工具：</b>Figma(UI设计)、Canva(快速做图)、Notion(知识管理)</p><p><b>学习资源：</b>MDN(前端)、LeetCode(算法)、Coursera(课程)、掘金(技术文章)</p><p><b>求职工具：</b>牛客(面经)、Boss直聘/实习僧(找实习)、超级简历(简历制作)</p>' },
-  { id:'k10', icon:'🎯', title:'各岗位面试真题', desc:'针对技术/产品/设计/运营不同岗位的典型面试题目和答题思路', content:'<h4>典型面试题</h4><p><b>技术岗：</b>\"请实现一个LRU缓存\" \"说说HTTP和HTTPS的区别\" \"你的项目最大难点是什么\"</p><p><b>产品岗：</b>\"估算一下北京有多少个加油站\" \"你怎么改进微信朋友圈\" \"设计一个校园社交产品\"</p><p><b>设计岗：</b>\"评价一下你常用App的设计\" \"在资源受限下如何做设计决策\"</p><p><b>通用：</b>\"你最大的缺点是什么\" \"为什么选择我们公司\" \"你未来3年的规划是什么\"</p>' },
-];
-
-// ==================== GOALS SYSTEM (daily + weekly + stage) ====================
-function getDailyGoals(grade) {
-  const sets = {
-    freshman: [
-      { id:'d1', title:'浏览1篇行业资讯', detail:'在36氪/虎嗅/腾讯科技阅读一篇互联网行业文章' },
-      { id:'d2', title:'学习编程30分钟', detail:'完成编程课程的一个小节或写一小段代码' },
-      { id:'d3', title:'记录一个想法或问题', detail:'在笔记本上记录今天的一个思考或疑问' },
-    ],
-    sophomore: [
-      { id:'d1', title:'解决1道算法题', detail:'在LeetCode上完成至少1道题目并理解思路' },
-      { id:'d2', title:'推进个人项目', detail:'给自己正在做的项目贡献至少30分钟' },
-      { id:'d3', title:'阅读1篇技术文章', detail:'在掘金/思否/Medium阅读一篇高质量技术文章' },
-    ],
-    junior: [
-      { id:'d1', title:'解决3道算法题', detail:'保持手感和解题速度，重点刷高频题' },
-      { id:'d2', title:'投递1个岗位或准备面试', detail:'优化简历、研究目标公司、或者做一次模拟面试' },
-      { id:'d3', title:'复盘一个项目经历', detail:'用STAR法则把1个项目经历写成面试素材' },
-    ],
-    senior: [
-      { id:'d1', title:'投递3-5个岗位', detail:'保持投递节奏，更新投递进度表' },
-      { id:'d2', title:'准备1个面试问题', detail:'针对目标岗位准备一个深度的技术或业务问题' },
-      { id:'d3', title:'心理调节10分钟', detail:'冥想/运动/写日记，保持良好心态' },
-    ],
-  };
-  return sets[grade] || sets.freshman;
-}
-
-function getWeeklyGoals(grade) {
-  const sets = {
-    freshman: [
-      { id:'w1', title:'本周完成5小时编程学习', detail:'保持每天至少30分钟的节奏' },
-      { id:'w2', title:'了解2个互联网岗位', detail:'各花30分钟研究一个岗位的JD和能力要求' },
-    ],
-    sophomore: [
-      { id:'w1', title:'本周完成10道算法题', detail:'覆盖至少3种题型' },
-      { id:'w2', title:'项目有可演示进展', detail:'本周至少完成项目的一个功能模块' },
-    ],
-    junior: [
-      { id:'w1', title:'本周投递5个实习岗位', detail:'含腾讯及其他目标企业' },
-      { id:'w2', title:'完成2次模拟面试', detail:'找同学或使用AI模拟面试工具' },
-    ],
-    senior: [
-      { id:'w1', title:'本周投递15个岗位', detail:'覆盖第一和第二梯队' },
-      { id:'w2', title:'完成3次面试复盘', detail:'每次面试后当天完成复盘笔记' },
-    ],
-  };
-  return sets[grade] || sets.freshman;
-}
-
-function getStageGoals(grade) {
-  const sets = {
-    freshman: [
-      { id:'s1', title:'完成一门编程入门课程', detail:'Python或前端，拿到课程证书' },
-      { id:'s2', title:'了解5个以上互联网岗位', detail:'能说出每个岗位的核心工作内容' },
-      { id:'s3', title:'参与1次技术/产品活动', detail:'线上或线下均可' },
-      { id:'s4', title:'完成第一个个人项目', detail:'部署上线并拥有可访问的链接' },
-    ],
-    sophomore: [
-      { id:'s1', title:'完成3个有质量的项目', detail:'GitHub托管，Star数或访问量有数据' },
-      { id:'s2', title:'算法刷题累计50道', detail:'覆盖主要题型' },
-      { id:'s3', title:'建立个人技术博客', detail:'发布至少5篇文章' },
-      { id:'s4', title:'投出第一份实习简历', detail:'完成简历撰写并通过至少3人Review' },
-    ],
-    junior: [
-      { id:'s1', title:'算法刷题累计100道', detail:'重点题型都能熟练解答' },
-      { id:'s2', title:'收获暑期实习offer', detail:'全力以赴在实习中表现，争取转正' },
-      { id:'s3', title:'完成5次以上面试', detail:'每次面试后都有复盘笔记' },
-      { id:'s4', title:'建立完整的求职知识体系', detail:'整理面试笔记和知识图谱' },
-    ],
-    senior: [
-      { id:'s1', title:'投递30+目标岗位', detail:'做好完整的投递和进度记录' },
-      { id:'s2', title:'完成10次面试复盘', detail:'归纳高频题和自己的答题模板' },
-      { id:'s3', title:'拿到2个以上offer', detail:'有选择的余地' },
-      { id:'s4', title:'完成大学成长总结', detail:'回看四年，输出一份成长记录' },
-    ],
-  };
-  return sets[grade] || sets.freshman;
-}
-
-// ==================== CORE FUNCTIONS ====================
-
-function startJourney(grade) {
-  userGrade = grade;
-  initAllGoals();
-  document.getElementById('onboarding').style.display = 'none';
-  document.getElementById('dashboard').classList.add('show');
-  document.getElementById('gradeSwitcherBtn').style.display = '';
-  document.getElementById('gradeSwitcherLabel').textContent = gradeInfo[grade].icon + ' ' + gradeInfo[grade].name;
-  renderDaily();
-  initChat();
-  renderRoadmap();
-  renderKnowledge();
-  renderGoals();
-  switchTab('chat');
-}
-
-function initAllGoals() {
-  allGoals = {};
-  goalSetCache = {};
-  const all = [...getDailyGoals(userGrade), ...getWeeklyGoals(userGrade), ...getStageGoals(userGrade)];
-  all.forEach(g => { allGoals[g.id] = false; goalSetCache[g.id] = g; });
-}
-
-function switchGrade(grade) {
-  if (userGrade === grade) { closeGradeSwitcher(); return; }
-  userGrade = grade;
-  initAllGoals();
-  document.getElementById('gradeSwitcherLabel').textContent = gradeInfo[grade].icon + ' ' + gradeInfo[grade].name;
-  closeGradeSwitcher();
-  renderDaily();
-  initChat();
-  renderRoadmap();
-  renderKnowledge();
-  renderGoals();
-  switchTab('chat');
-  showToast('🔄 已切换到 ' + gradeInfo[grade].name, 'success');
-  launchMiniConfetti();
-}
-
-function openGradeSwitcher() { document.getElementById('gradeModal').classList.add('show'); }
-function closeGradeSwitcher() { document.getElementById('gradeModal').classList.remove('show'); }
-
-// ==================== CHAT (enhanced) ====================
-function initChat() {
-  const msgs = document.getElementById('chatMessages');
-  const quick = document.getElementById('chatQuick');
-  const info = gradeInfo[userGrade];
-  const knowledge = aiKnowledge[userGrade];
-  const topics = Object.keys(knowledge.topics);
-
-  msgs.innerHTML = `
-    <div class="chat-msg ai">
-      👋 嗨！我是未来鹅，你的专属职业成长伙伴～<br>
-      看到你是 <strong>${info.icon} ${info.name}</strong>，我会给你最贴心的陪伴和建议！<br>
-      你可以直接问我任何问题，或者点击下方的快捷按钮快速提问 ✨
-      <div class="msg-time">刚刚</div>
-    </div>
-  `;
-
-  quick.innerHTML = topics.map(t => `
-    <button class="chat-quick-btn" onclick="quickAsk('${t}')">${t}</button>
-  `).join('');
-
-  document.getElementById('chatInput').placeholder = `问我任何问题，比如"${topics[0]}"…`;
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function quickAsk(q) {
-  document.getElementById('chatInput').value = q;
-  sendMessage();
-}
-
-function sendMessage() {
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
-  if (!msg) return;
-
-  const msgs = document.getElementById('chatMessages');
-  msgs.innerHTML += `<div class="chat-msg user">${msg}<div class="msg-time">刚刚</div></div>`;
-
-  // Show typing indicator
-  const typingId = 'typing_' + Date.now();
-  msgs.innerHTML += `<div class="typing" id="${typingId}"><span></span><span></span><span></span></div>`;
-  msgs.scrollTop = msgs.scrollHeight;
-  input.value = '';
-
-  // Simulate AI thinking with variable delay
-  const delay = 600 + Math.random() * 1200;
-  setTimeout(() => {
-    // Remove typing indicator
-    const typing = document.getElementById(typingId);
-    if (typing) typing.remove();
-
-    const reply = getAIResponse(msg);
-    msgs.innerHTML += `<div class="chat-msg ai">${reply}<div class="msg-time">刚刚</div></div>`;
-    msgs.scrollTop = msgs.scrollHeight;
-  }, delay);
-}
-
-function getAIResponse(msg) {
-  const knowledge = aiKnowledge[userGrade];
-  const m = msg.toLowerCase();
-
-  // Try to match against all topics
-  for (const [topic, response] of Object.entries(knowledge.topics)) {
-    // Check if the message contains keywords from the topic or vice versa
-    const topicKeywords = topic.split('').filter(c => c.charCodeAt(0) > 127).join('');
-    if (topicKeywords.length > 2 && m.includes(topicKeywords.substring(0, 3))) {
-      return response;
-    }
-    // Also check for direct substring match
-    if (topic.length > 3 && m.includes(topic.substring(0, 4))) {
-      return response;
-    }
-  }
-
-  // Fallback: return the intro + suggest topics
-  const topics = Object.keys(knowledge.topics);
-  const suggestions = topics.slice(0, 4).map(t => `「${t}」`).join('、');
-  return knowledge.default + '\n\n💡 你可以试试问我：' + suggestions;
-}
-
-// ==================== ROADMAP ====================
-function renderRoadmap() {
-  const items = roadmaps[userGrade] || roadmaps.freshman;
-  document.getElementById('timeline').innerHTML = items.map((item, i) => `
-    <div class="timeline-item" style="animation: fadeInUp ${0.3 + i * 0.15}s ease both;">
-      <div class="timeline-dot ${i === 0 ? 'current' : 'upcoming'}"></div>
-      <div class="timeline-content">
-        <h4>${i+1}. ${item.title} <span class="tl-tag ${item.tag === 'must' ? 'must' : 'recommend'}">${item.tagLabel}</span></h4>
-        <p>${item.desc}</p>
-        <div class="tl-resources">
-          📎 ${item.resources.map(r => `<span>${r}</span>`).join(' ')}
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
-
-// ==================== KNOWLEDGE ====================
-function renderKnowledge() {
-  document.getElementById('knowledgeGrid').innerHTML = knowledgeBase.map((k, i) => `
-    <div class="knowledge-card" onclick="showKnowledgeDetail('${k.id}')" style="animation: fadeInUp ${0.3 + i * 0.1}s ease both;">
-      <div class="kc-icon">${k.icon}</div>
-      <div class="kc-title">${k.title}</div>
-      <div class="kc-desc">${k.desc}</div>
-    </div>
-  `).join('');
+// ============ KNOWLEDGE ============
+function renderKnowledge(filter){
+  let items=knowledgeBase;if(filter){items=items.filter(k=>k.title.includes(filter)||k.desc.includes(filter)||k.content.includes(filter))}
+  document.getElementById('knowledgeGrid').innerHTML=items.map((k,i)=>`<div class="knowledge-card" onclick="showKnowledgeDetail('${k.id}')" style="animation:fadeInUp ${0.3+i*0.1}s ease both"><div class="kc-icon">${k.icon}</div><div class="kc-title">${k.title}</div><div class="kc-desc">${k.desc}</div></div>`).join('');
+  document.getElementById('kbCount').textContent=items.length;
   document.getElementById('knowledgeDetail').classList.remove('show');
+  // Update datalist
+  document.getElementById('kbDatalist').innerHTML=knowledgeBase.map(k=>`<option value="${k.title}">`).join('');
+}
+function filterKnowledge(){const q=document.getElementById('kbSearch').value.trim();renderKnowledge(q||null)}
+function showKnowledgeDetail(id){const k=knowledgeBase.find(kb=>kb.id===id);if(!k)return;const d=document.getElementById('knowledgeDetail');d.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><h3>${k.icon} ${k.title}</h3><button class="btn btn-sm" style="background:#e2e8f0" onclick="document.getElementById('knowledgeDetail').classList.remove('show')">✕ 收起</button></div>${k.content}`;d.classList.add('show');d.scrollIntoView({behavior:'smooth'})}
+function randomRecommend(){const picked=shuffle([...knowledgeBase]).slice(0,3);document.getElementById('knowledgeGrid').innerHTML=picked.map((k,i)=>`<div class="knowledge-card" onclick="showKnowledgeDetail('${k.id}')" style="animation:fadeInUp ${0.3+i*0.1}s ease both"><div class="kc-icon">${k.icon}</div><div class="kc-title">${k.title}</div><div class="kc-desc">${k.desc}</div></div>`).join('');document.getElementById('kbCount').textContent='3 (推荐)';showToast('🎲 已随机推荐3个知识模块','info')}
+
+// ============ GOALS ============
+function renderGoals(){
+  const dailyG=getDailyGoals(userGrade),weeklyG=getWeeklyGoals(userGrade),stageG=getStageGoals(userGrade);
+  const all=[...dailyG,...weeklyG,...stageG];
+  all.forEach(g=>{if(!(g.id in allGoals))allGoals[g.id]=false;goalSetCache[g.id]=g});
+  const doneCount=all.filter(g=>allGoals[g.id]).length;const pct=Math.round(doneCount/all.length*100);
+  document.getElementById('goalContainer').innerHTML=`<div class="goal-section"><h4>📅 今日任务 <span style="font-size:11px;color:var(--text-light);font-weight:400">${todayStr} · 每日0点刷新</span></h4>${dailyG.map(g=>renderGoalItem(g)).join('')}</div><div class="goal-section"><h4>📆 本周挑战</h4>${weeklyG.map(g=>renderGoalItem(g)).join('')}</div><div class="goal-section"><h4>🏆 阶段目标</h4>${stageG.map(g=>renderGoalItem(g)).join('')}</div>`;
+  document.getElementById('goalProgress').textContent=pct+'%';document.getElementById('goalProgressBar').style.width=pct+'%';
+  if(pct===100&&doneCount>0){setTimeout(()=>{launchConfetti();showToast('🎉 恭喜完成所有目标！你太棒了！','success');},300)}
+}
+function renderGoalItem(g){const done=allGoals[g.id]||false;return`<div class="goal-item"><div class="goal-check ${done?'done':''}" onclick="toggleGoal('${g.id}')">${done?'✓':''}</div><div class="goal-info"><div class="goal-title">${done?'<s>'+g.title+'</s>':g.title}</div><div class="goal-detail">${g.detail}</div></div><span class="goal-badge ${done?'done':''}">${done?'✅ 完成':'⏳ 进行中'}</span></div>`}
+function toggleGoal(id){allGoals[id]=!allGoals[id];state.goals=allGoals;sv(state);renderGoals();if(allGoals[id]){const c=document.getElementById('confetti');for(let i=0;i<8;i++){setTimeout(()=>{const p=document.createElement('div');p.className='confetti-piece';p.style.cssText=`left:${30+Math.random()*40}%;top:-10px;width:${6+Math.random()*10}px;height:${6+Math.random()*10}px;background:#10b981;animation-duration:${1+Math.random()*2}s;`;c.appendChild(p);setTimeout(()=>p.remove(),3000)},i*20)}}}
+function resetGoals(){if(confirm('确定重置所有目标进度？')){allGoals={};state.goals=allGoals;sv(state);renderGoals();showToast('🔄 目标已重置','success')}}
+function resetAll(){if(confirm('确定恢复默认？将清除所有进度和对话。')){allGoals={};chatHistory=[];state={goals:{},chatHistory:[],visitDates:visitDates};sv(state);userGrade='';document.getElementById('onboarding').style.display='';document.getElementById('dashboard').classList.remove('show');document.getElementById('gradeSwitcherBtn').style.display='none';showToast('🔃 已恢复默认状态','success')}}
+
+// ============ CALENDAR ============
+function renderCalendar(){
+  const now=new Date();const y=now.getFullYear(),m=now.getMonth();
+  const firstDay=new Date(y,m,1).getDay(),daysInMonth=new Date(y,m+1,0).getDate();
+  let html='<div style="text-align:center;font-size:14px;margin-bottom:8px;font-weight:600">'+now.getFullYear()+'年'+(m+1)+'月</div><div class="calendar-grid">';
+  const weekDays=['日','一','二','三','四','五','六'];
+  weekDays.forEach(d=>{html+=`<div style="text-align:center;font-size:10px;color:var(--text-light);padding:4px">${d}</div>`});
+  for(let i=0;i<firstDay;i++)html+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const isToday=d===now.getDate();const visited=visitDates[ds];html+=`<div class="calendar-day${isToday?' active':''}${visited&&!isToday?' visited':''}" title="${visited?'已签到':''}">${d}</div>`}
+  html+='</div><p style="font-size:11px;color:var(--text-light);margin-top:8px;text-align:center">🔥 已累计访问 '+Object.keys(visitDates).length+' 天</p>';
+  document.getElementById('calendarView').innerHTML=html;
 }
 
-function showKnowledgeDetail(id) {
-  const k = knowledgeBase.find(kb => kb.id === id);
-  if (!k) return;
-  const detail = document.getElementById('knowledgeDetail');
-  detail.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <h3>${k.icon} ${k.title}</h3>
-      <button class="btn btn-sm" style="background:#e2e8f0;" onclick="document.getElementById('knowledgeDetail').classList.remove('show')">✕ 收起</button>
-    </div>
-    ${k.content}
-  `;
-  detail.classList.add('show');
-  detail.scrollIntoView({ behavior:'smooth' });
-}
+// ============ TABS ============
+function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.hidden-section').forEach(s=>s.classList.remove('show'));const idx=['chat','roadmap','knowledge','goals','calendar'].indexOf(tab);if(idx>=0){document.querySelectorAll('.tab')[idx].classList.add('active');document.getElementById('tab-'+tab).classList.add('show')}if(tab==='chat')setTimeout(()=>{document.getElementById('chatMessages').scrollTop=document.getElementById('chatMessages').scrollHeight},100);if(tab==='goals')renderGoals();if(tab==='calendar')renderCalendar()}
 
-// ==================== GOALS ====================
-function renderGoals() {
-  const dailyG = getDailyGoals(userGrade);
-  const weeklyG = getWeeklyGoals(userGrade);
-  const stageG = getStageGoals(userGrade);
-  const all = [...dailyG, ...weeklyG, ...stageG];
-  // Merge with saved state
-  all.forEach(g => { if (!(g.id in allGoals)) allGoals[g.id] = false; goalSetCache[g.id] = g; });
-
-  const doneCount = all.filter(g => allGoals[g.id]).length;
-  const pct = Math.round(doneCount / all.length * 100);
-
-  const todayLabel = todayStr;
-
-  document.getElementById('goalContainer').innerHTML = `
-    <div class="goal-section">
-      <h4>📅 今日任务 <span style="font-size:11px;color:var(--text-light);font-weight:400;">${todayLabel} · 每日0点刷新</span></h4>
-      ${dailyG.map(g => renderGoalItem(g)).join('')}
-    </div>
-    <div class="goal-section">
-      <h4>📆 本周挑战</h4>
-      ${weeklyG.map(g => renderGoalItem(g)).join('')}
-    </div>
-    <div class="goal-section">
-      <h4>🏆 ${gradeInfo[userGrade].name} 阶段目标</h4>
-      ${stageG.map(g => renderGoalItem(g)).join('')}
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:12px;">
-      <span>总进度</span><span><strong>${doneCount}/${all.length}</strong> (${pct}%)</span>
-    </div>
-  `;
-
-  document.getElementById('goalProgress').textContent = pct + '%';
-  document.getElementById('goalProgressBar').style.width = pct + '%';
-
-  if (pct === 100 && doneCount > 0) {
-    setTimeout(() => { launchConfetti(); showToast('🎉 恭喜完成所有目标！你太棒了！', 'success'); }, 300);
-  }
-}
-
-function renderGoalItem(g) {
-  const done = allGoals[g.id] || false;
-  return `
-    <div class="goal-item">
-      <div class="goal-check ${done ? 'done' : ''}" onclick="toggleGoal('${g.id}')">${done ? '✓' : ''}</div>
-      <div class="goal-info">
-        <div class="goal-title">${done ? '<s>' + g.title + '</s>' : g.title}</div>
-        <div class="goal-detail">${g.detail}</div>
-      </div>
-      <span class="goal-badge ${done ? 'done' : ''}">${done ? '✅ 完成' : '⏳ 进行中'}</span>
-    </div>
-  `;
-}
-
-function toggleGoal(id) {
-  allGoals[id] = !allGoals[id];
-  renderGoals();
-  if (allGoals[id]) {
-    // Small confetti on individual completion
-    const container = document.getElementById('confetti');
-    for (let i = 0; i < 8; i++) {
-      setTimeout(() => {
-        const piece = document.createElement('div');
-        piece.className = 'confetti-piece';
-        piece.style.cssText = `left:${30+Math.random()*40}%;top:-10px;width:${6+Math.random()*10}px;height:${6+Math.random()*10}px;background:#10b981;animation-duration:${1+Math.random()*2}s;`;
-        container.appendChild(piece);
-        setTimeout(() => piece.remove(), 3000);
-      }, i * 20);
-    }
-  }
-}
-
-// ==================== TABS ====================
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.hidden-section').forEach(s => s.classList.remove('show'));
-  const idx = ['chat','roadmap','knowledge','goals'].indexOf(tab);
-  if (idx >= 0) {
-    document.querySelectorAll('.tab')[idx].classList.add('active');
-    document.getElementById('tab-' + tab).classList.add('show');
-  }
-  if (tab === 'chat') {
-    setTimeout(() => {
-      document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
-    }, 100);
-  }
-  if (tab === 'goals') renderGoals();
-}
-
-// ==================== TOAST ====================
-function showToast(msg, type) {
-  const t = document.createElement('div');
-  t.className = 'toast ' + (type || 'success');
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.animation = 'slideIn 0.3s ease reverse'; setTimeout(() => t.remove(), 300); }, 2500);
-}
+// ============ TOAST ============
+function showToast(msg,type){const t=document.createElement('div');t.className='toast '+(type||'success');t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.animation='slideIn 0.3s ease reverse';setTimeout(()=>t.remove(),300)},2500)}
+function shuffle(arr){let m=arr.length,t,i;while(m){i=Math.floor(Math.random()*m--);t=arr[m];arr[m]=arr[i];arr[i]=t}return arr}
 </script>
 </body>
 </html>
